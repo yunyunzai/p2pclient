@@ -1,0 +1,58 @@
+Functions: (Incomplete)
+
+client_init
+
+connect : periodically connects ("CONNECT <PORT>")
+disconnect : ("DISCONNECT <PORT>")
+
+====
+list :   
+proc server list resp :
+broadcastSearchRequest :
+procSearchRequest :
+selectCandidate (Send download request) :
+startFileTransfer :
+completeFileTransfer :
+
+
+====
+handleClient : create new threads to respond to other clients
+respSearchRequest :
+respDownloadRequest :
+completeFileTransfer : 
+closeConnection :
+
+==== helpers
+recvMsg  :  
+
+
+
+======= Use cases (Client Peer)
+
+Download File:
+1. connect (send server "CONNECT <port>")
+2. the user 
+3. List 
+4. proc server resp (handle the list sent from the central server)
+5. broadcast search request (send "SEARCH <filename>" to the other server peer)
+6. proc search responses
+7. select the best peer server to download file from
+8. send download request (Create new thread and send "GET <filename>" to the other server peer)
+9. start downloding
+10. received "FINISH <filename>" from the peer server
+11. finish up downloading (save the file as original format)
+
+
+======== User cases (Server Peer)
+Handle File Search Request from other Peer Client (Thread)
+1. proc client search request (received "SEARCH <filename>")
+2. search 
+3. reply "YES <port>" or "No"
+
+Handle File Download Request from other Peer (Thread)
+1. proc client file download request received "GET <filename>" on the port cashed from previous search on <filename>. 
+2. Create new thread and establish new UDP connection to the client for file transfer
+3. Send File header (meta data)
+4. File transfer
+5. when finish send "FINISH <filename>" to the client peer
+ 
