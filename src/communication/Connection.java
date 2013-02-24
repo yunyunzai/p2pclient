@@ -85,7 +85,6 @@ public class Connection
             //TODO: check why the heck the response is not matching any of both
             if(responseString.equals("ER\r\n"))
             {
-            	System.out.println("4"+s.isClosed());
             	throw new Exception("An error occurred on the other side.");
             }
             else if(responseString.equals("OK\r\n"))
