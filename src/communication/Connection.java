@@ -34,6 +34,20 @@ public class Connection
     	createListeningConnection(2112);
 	}
 	
+	public void listPeers() throws Exception
+	{
+		try
+		{
+			sendCommand("LIST\r\n\r\n");
+		}
+		catch(Exception e)
+		{
+			System.out.println(e.getMessage());
+			throw new Exception("Could not connect to the server: " + e.getMessage()); 
+		}
+		
+	}
+	
 	private void createListeningConnection(int port)
 	{
 		//TODO: create a listening connection for peers after telling the server you're alive
@@ -101,9 +115,9 @@ public class Connection
             try
             {
             	//Close the connection with server
-            	in.close();
-            	out.close();
-                s.close();
+//            	in.close();
+//            	out.close();
+//                s.close();
             }
             catch(Exception e)
             {	

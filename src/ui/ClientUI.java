@@ -18,6 +18,7 @@ public class ClientUI {
 
 	private JFrame frame;
 	private JMenuItem mntmConnect;
+	private JMenuItem mntmList;
 	private JMenuItem mntmDisconnect;
 	private JTextArea txtLog;
 
@@ -67,6 +68,16 @@ public class ClientUI {
 		});
 		mnFile.add(mntmConnect);
 		
+		mntmList = new JMenuItem("List");
+		mntmList.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) 
+			{
+				list_peers();
+			}
+			
+		});
+		mnFile.add(mntmList);
+		
 		mntmDisconnect = new JMenuItem("Disconnect");
 		mntmDisconnect.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) 
@@ -111,4 +122,18 @@ public class ClientUI {
 		mntmDisconnect.setEnabled(true);
 	}
 	
+	private void list_peers() {
+		//Getting peer table
+		txtLog.setText(txtLog.getText() + "\nGetting peer table...");
+		Connection conn = new Connection();
+		try
+		{
+			conn.listPeers();
+		}
+		catch(Exception e)
+		{
+			txtLog.setText(txtLog.getText() + "\n" + e.getMessage());
+			return;
+		}
+	}
 }
