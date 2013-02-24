@@ -26,6 +26,7 @@ public class Connection
 		}
 		catch(Exception e)
 		{
+			System.out.println(e.getMessage());
 			throw new Exception("Could not connect to the server: " + e.getMessage()); 
 		}
 		
@@ -52,7 +53,8 @@ public class Connection
 		{            
             //Create the socket with the server
 			//TODO: Maybe put the IP and port in a separate file and read from it so we have a configurable client
-			s = new Socket("128.189.161.17", 2111);  
+//			s = new Socket("128.189.161.17", 2111);  
+			s = new Socket("54.245.150.162", 8000);  
             
             //Get the data output stream  
 			out = s.getOutputStream();  
@@ -68,7 +70,6 @@ public class Connection
             byte[] response = new byte[100];
             
             int bytesRead = in.read(response);
-            
             //TODO: make the size of the response as a constant
             while(bytesRead < 3)
             {
@@ -79,15 +80,15 @@ public class Connection
             	
             	bytesRead += in.read(response, bytesRead, 100);
             }
-            
             String responseString = new String(response, "ASCII");
-            
+            System.out.println(responseString);
             //TODO: check why the heck the response is not matching any of both
-            if(responseString == "ER\r\n")
+            if(responseString.equals("ER\r\n"))
             {
+            	System.out.println("4"+s.isClosed());
             	throw new Exception("An error occurred on the other side.");
             }
-            else if(responseString != "OK\r\n")
+            else if(responseString.equals("OK\r\n"))
             {
             	throw new Exception("The other side didn't respond properly.");
             }
