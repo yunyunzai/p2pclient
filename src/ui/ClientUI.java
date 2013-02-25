@@ -16,7 +16,7 @@ import java.awt.BorderLayout;
 
 public class ClientUI {
 
-	private JFrame frame;
+	public static JFrame frame;
 	private JMenuItem mntmConnect;
 	private JMenuItem mntmList;
 	private JMenuItem mntmDisconnect;
