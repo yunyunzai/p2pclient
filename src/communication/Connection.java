@@ -40,7 +40,7 @@ public class Connection
 	public void connectServer() throws Exception
 	{
 		Socket s = initializeConnection();		
-		sendCommand(s,"CONNECT 2113\r\n\r\n");
+		sendCommand(s,"CONNECT 2100\r\n\r\n");
 		handleConnectResponse(s);
 		s.close();
 
@@ -128,14 +128,11 @@ public class Connection
 				{
 					throw new Exception("Connection closed by the other side.");
 				}
-				bytesRead += in.read(response, bytesRead, 100);
+				bytesRead += in.read(response, bytesRead, 10000);
 			}
-			responseString = new String(response, "ASCII").substring(0,bytesRead);
-			//	        JsonParser jParser=new JsonParser();
-			//	        JsonElement jElement=jParser.parse(responseString);
-			//	        //JsonArray jArray=jElement.getAsJsonArray();
-			//	        System.out.println(jElement);
+			responseString = new String(response, "ASCII").substring(0,bytesRead-1);
 
+			System.out.println(bytesRead);
 			//TODO: check why the heck the response is not matching any of both
 			if(responseString.equals("ER\r\n"))
 			{
@@ -199,7 +196,7 @@ public class Connection
 				}
 				bytesRead += in.read(response);
 			}
-			responseString = new String(response).substring(0,bytesRead);
+			responseString = new String(response).substring(0,bytesRead-1);
 			JsonParser jParser=new JsonParser();
 			JsonElement jElement=jParser.parse(responseString);
 			JsonArray jArray=jElement.getAsJsonArray();
@@ -209,8 +206,8 @@ public class Connection
 			{
 				ClientInfo c_info=new ClientInfo();
 				String clientInfoStr = jArray.get(i).toString();
-				int ipStart=clientInfoStr.indexOf("\"ip\":")+5;
-				int ipEnd=clientInfoStr.indexOf(",");
+				int ipStart=clientInfoStr.indexOf("\"ip\":\"")+6;
+				int ipEnd=clientInfoStr.indexOf("\",");
 				System.out.println(clientInfoStr.substring(ipStart, ipEnd));
 				c_info.setIp(clientInfoStr.substring(ipStart, ipEnd));
 				
