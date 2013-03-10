@@ -27,16 +27,9 @@ import java.awt.*;
 
 public class Connection 
 {	
-	//Used to create the listening connection
-	private ServerSocket peerServer;
-	private Socket peerSocket;
-	private String DEFAULT_SERVER_IP="54.245.150.162";
-	private int DEFAULT_SERVER_PORT=2013;
 
 	public Connection()
 	{		  
-		peerServer = null;  
-		peerSocket = null;
 	}
 
 	public void connectServer() throws Exception
@@ -77,23 +70,6 @@ public class Connection
 	{
 
 	}
-
-	private void createListeningConnection(int port)
-	{
-//		ServerSocket ssock;
-//		try {
-//			ssock = new ServerSocket(port);
-//
-//			System.out.println("port " + port + " opened");
-//			
-//			Socket sock = ssock.accept();
-//			System.out.println("Someone has made socket connection");
-//		} catch (IOException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-
-		//TODO: create a listening connection for peers after telling the server you're alive
-	}
+	
 	
 }

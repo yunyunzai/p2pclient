@@ -11,6 +11,7 @@ import java.awt.event.ActionEvent;
 import javax.swing.JTextArea;
 
 import communication.Connection;
+import communication.PeerServer;
 
 import java.awt.BorderLayout;
 
@@ -21,6 +22,7 @@ public class ClientUI {
 	private JMenuItem mntmList;
 	private JMenuItem mntmDisconnect;
 	private JTextArea txtLog;
+	PeerServer peerServer;
 
 	/**
 	 * Launch the application.
@@ -42,13 +44,14 @@ public class ClientUI {
 	 * Create the application.
 	 */
 	public ClientUI() {
-		initialize();
+		initializeUI();
+		initializePeerServer();
 	}
 
 	/**
 	 * Initialize the contents of the frame.
 	 */
-	private void initialize() {
+	private void initializeUI() {
 		frame = new JFrame();
 		frame.setBounds(100, 100, 450, 300);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -83,6 +86,7 @@ public class ClientUI {
 			public void actionPerformed(ActionEvent e) 
 			{
 				//Disconnect from server
+				// TODO implement disconnect function				
 				
 				
 				//Handle UI stuff
@@ -94,11 +98,32 @@ public class ClientUI {
 		mnFile.add(mntmDisconnect);
 		
 		JMenuItem mntmExit = new JMenuItem("Exit");
+		mntmExit.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) 
+			{
+
+				//Stop the peer server
+				peerServer.closePeerServer();
+				
+				frame.dispose();
+			}
+		});
 		mnFile.add(mntmExit);
 		
 		txtLog = new JTextArea();
 		txtLog.setEditable(false);
 		frame.getContentPane().add(txtLog, BorderLayout.CENTER);
+		
+				
+	}
+	private void initializePeerServer()
+	{
+		peerServer=new PeerServer();
+		start_peer_server();
+	}
+	private void start_peer_server()
+	{
+		peerServer.startPeerServer();
 	}
 	
 	private void connect_server()
@@ -110,6 +135,7 @@ public class ClientUI {
 		try
 		{
 			conn.connectServer();
+			start_peer_server();
 		}
 		catch(Exception e)
 		{

@@ -22,7 +22,8 @@ public class List extends ServerConnection {
 		
 		System.out.println("CREATING LIST");
 	}
-	
+
+	@Override
 	protected void handleResponse(String response)
 	{
 		response = response.trim();
