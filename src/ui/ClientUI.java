@@ -23,6 +23,7 @@ public class ClientUI {
 	private JMenuItem mntmDisconnect;
 	private JTextArea txtLog;
 	PeerServer peerServer;
+	Connection conn;
 
 	/**
 	 * Launch the application.
@@ -131,7 +132,7 @@ public class ClientUI {
 		//Connect to the server
 		txtLog.setText(txtLog.getText() + "\nConnecting to the server...");
 		
-		Connection conn = new Connection();
+		conn = new Connection();
 		try
 		{
 			conn.connectServer();

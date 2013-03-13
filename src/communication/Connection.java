@@ -1,35 +1,18 @@
 package communication;
 
-import java.awt.Window;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.regex.Pattern;
 
-import java.net.ServerSocket;
-import java.net.Socket;
-
-import javax.swing.JDialog;
-import javax.swing.JFrame;
-import javax.swing.JOptionPane;
-
-import ui.ClientUI;
-
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
+import settings.Settings;
 
 import data.ClientInfo;
 
-
-import java.awt.*;
-
 public class Connection 
-{	
+{
+	KeepAliveThread keepAlive;
 
 	public Connection()
-	{		  
+	{
+		keepAlive = null;
 	}
 
 	public void connectServer() throws Exception
@@ -38,6 +21,7 @@ public class Connection
 		try
 		{
 			connectCmd.send();
+			keepAlive();
 		}
 		catch (Exception e)
 		{
@@ -68,8 +52,53 @@ public class Connection
 
 	public void disconnectServer() throws Exception
 	{
-
+		dontKeepAlive();
 	}
 	
+	private void keepAlive()
+	{	
+		keepAlive = new KeepAliveThread();
+		keepAlive.start();
+	}
 	
+	private void dontKeepAlive()
+	{
+		if (keepAlive != null && keepAlive.isAlive())
+		{
+			keepAlive.exit();		
+		}
+	}
+	
+	private class KeepAliveThread extends Thread
+	{
+
+		boolean exit = false;
+		
+		@Override
+		public void run() 
+		{
+			Connect connectCmd = new Connect();
+			while (!exit)
+			{
+				try 
+				{
+					//Waits for the timeout (or near it)
+					KeepAliveThread.sleep(Settings.SERVER_LIST_TIMEOUT * 1000);
+					
+					//And tries to send another CONNECT
+					connectCmd.send();
+				} 
+				catch (Exception e) 
+				{
+					System.out.println("Error while sending update command to the server: " + e.getMessage());
+					break;
+				}
+			}			
+		}
+		
+		public void exit()
+		{
+			exit = true;
+		}
+	}	
 }
