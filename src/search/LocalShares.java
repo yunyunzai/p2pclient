@@ -16,6 +16,11 @@ public class LocalShares {
     private static Map<String, Set<File>> index = new HashMap<String, Set<File>>();
     
     public static void buildIndex() {
+        File dir = new File(Settings.SHARED_FOLDER);
+        if (!dir.exists()) {
+            System.out.println("Shared directory '"+Settings.SHARED_FOLDER+"' not found");
+            return;
+        }
         indexDirectory(new File(Settings.SHARED_FOLDER));
     }
     
