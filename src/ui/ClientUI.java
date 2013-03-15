@@ -10,6 +10,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import javax.swing.JTextArea;
 
+import search.LocalShares;
 import settings.InvalidRCException;
 import settings.Settings;
 
@@ -36,6 +37,7 @@ public class ClientUI {
 	    
 	    try {
             Settings.loadSettings();
+            LocalShares.buildIndex();
         } catch (FileNotFoundException e1) {
             System.out.println("ERROR: " + Settings.CONF_FILE + " not found");
         } catch (InvalidRCException e1) {
