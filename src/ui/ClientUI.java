@@ -6,6 +6,8 @@ import javax.swing.JFrame;
 import javax.swing.JMenuBar;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import javax.swing.JTextArea;
@@ -19,6 +21,7 @@ import communication.PeerServer;
 
 import java.awt.BorderLayout;
 import java.io.FileNotFoundException;
+import javax.swing.JTabbedPane;
 
 public class ClientUI {
 
@@ -29,6 +32,7 @@ public class ClientUI {
 	private JTextArea txtLog;
 	PeerServer peerServer;
 	Connection conn;
+	private JTabbedPane tabbedPane;
 
 	/**
 	 * Launch the application.
@@ -69,7 +73,7 @@ public class ClientUI {
 	 */
 	private void initializeUI() {
 		frame = new JFrame();
-		frame.setBounds(100, 100, 450, 300);
+		frame.setBounds(20, 20, 640, 480);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
 		JMenuBar menuBar = new JMenuBar();
@@ -126,9 +130,20 @@ public class ClientUI {
 		});
 		mnFile.add(mntmExit);
 		
+		tabbedPane = new JTabbedPane(JTabbedPane.TOP);
+		
+		JPanel panelSearch = new JPanel(false);
+		tabbedPane.addTab("Search", panelSearch);
+		JPanel panelDownload = new JPanel(false);
+		tabbedPane.addTab("Download", panelDownload);
+		JPanel panelLog = new JPanel(false);
+		tabbedPane.addTab("Log", panelLog);
+		
 		txtLog = new JTextArea();
+		txtLog.setTabSize(100);
+		panelLog.add(txtLog);
 		txtLog.setEditable(false);
-		frame.getContentPane().add(txtLog, BorderLayout.CENTER);
+		frame.getContentPane().add(tabbedPane, BorderLayout.CENTER);
 		
 				
 	}
