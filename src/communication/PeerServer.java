@@ -1,5 +1,6 @@
 package communication;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -11,6 +12,12 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+
+import download.UploadManager;
 
 import settings.Settings;
 
@@ -89,10 +96,12 @@ public class PeerServer {
 				try {
 					Socket peerSocket=peerServerSocket.accept();
 					ClientThread oldPeerThread;
+					// if the older connection exists, terminate the older connection
 					if ((oldPeerThread=peerThreads.get(peerSocket.getInetAddress()))!=null)
-					{
+					{						
 						oldPeerThread.getSocket().close();
 					}
+					// start new peer connection thread
 					ClientThread newClientThread=new ClientThread(peerSocket);
 					peerThreads.put(peerSocket.getInetAddress(),newClientThread);
 					newClientThread.start();
@@ -174,6 +183,22 @@ public class PeerServer {
 					if(messageString.equals("ER\r\n"))
 					{
 						throw new Exception("An error occurred on the other side.");
+					}
+					// search request
+					else if(messageString.equals("SEARCH\r\n"))
+					{
+						throw new Exception("An error occurred on the other side.");
+					}
+					// handle download request
+					else if(messageString.indexOf("DOWNLOAD", 0)==0)
+					{
+						JSONParser parser = new JSONParser();
+						JSONObject jsonFile = (JSONObject)parser.parse(messageString.substring(9));
+						
+						File file=new File((String)jsonFile.get("path"));
+						
+						new UploadManager(this.clientSocket,file).start_upload();
+						
 					}
 					else if(messageString.equals("OK\r\n"))
 					{
