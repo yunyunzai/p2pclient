@@ -1,12 +1,20 @@
 package search;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.Map;
 
+import org.json.simple.JSONArray;
+
+import com.google.common.hash.Hashing;
+import com.google.common.io.Files;
+
+import settings.InvalidRCException;
 import settings.Settings;
 
 public class LocalShares {
@@ -19,16 +27,16 @@ public class LocalShares {
      * where each string in the set is the full (absolute) path name of a file that
      * matches the keyword.  Keywords are automatically converted to lower case.
      */
-    private static Map<String, Set<String>> searchIndex =
-            new HashMap<String, Set<String>>() {
+    private static Map<String, Set<SearchResult>> searchIndex =
+            new HashMap<String, Set<SearchResult>>() {
         private static final long serialVersionUID = 1L;
         @Override
-        public Set<String> put(String key, Set<String> value) {
+        public Set<SearchResult> put(String key, Set<SearchResult> value) {
             return super.put(key.toLowerCase(), value);
         }
 
         @Override
-        public Set<String> get(Object key) {
+        public Set<SearchResult> get(Object key) {
             return super.get(((String)key).toLowerCase());
         }
     };
@@ -70,20 +78,28 @@ public class LocalShares {
                 continue;
             }
             
-            lookupIndex.put(file.getAbsolutePath(), file);
+            String hash;
+            try { hash = Files.hash(file, Hashing.sha1()).toString(); }
+            catch (IOException e) {
+                e.printStackTrace();
+                continue;
+            }
+            
+            lookupIndex.put(hash, file);
+            System.out.println("Hash of '"+file.getName()+"' is "+hash);
             
             // add file to file set for each key in file name
             for (String key : file.getName().split(delimiters)) {
                 if (key.length() < MIN_KEY_LEN || ignoredKeys.contains(key))
                     continue;
                 
-                Set<String> values = searchIndex.get(key);
+                Set<SearchResult> values = searchIndex.get(key);
                 if (values == null) {
-                    values = new HashSet<String>();
+                    values = new HashSet<SearchResult>();
                     searchIndex.put(key, values);
                 }
                 System.out.println("Associating "+file.getName()+" with key "+key);
-                values.add(file.getAbsolutePath());
+                values.add(new SearchResult(file, hash));
             }
         }
     }
@@ -94,8 +110,8 @@ public class LocalShares {
      * @return the File object corresponding to the given path, or null if
      *         no such file is indexed
      */
-    public static File getFile(String path) {
-        return lookupIndex.get(path);
+    public static File getFile(String hash) {
+        return lookupIndex.get(hash);
     }
     
     /**
@@ -103,14 +119,34 @@ public class LocalShares {
      * @param query a space-separated list of keywords
      * @return a set of files that matched the query
      */
-    public static Set<String> query(String query) {
+    /*public static Set<File> query(String query) {
         String[] keywords = query.split(delimiters);
-        Set<String> results = new HashSet<String>();
+        Set<File> results = new HashSet<File>();
         
         for (String key : keywords) {
             if (searchIndex.containsKey(key))
                 results.addAll(searchIndex.get(key));
         }
         return results;
+    }*/
+    
+    @SuppressWarnings("unchecked")
+    public static JSONArray query(String query) {
+        String[] keywords = query.split(delimiters);
+        JSONArray results = new JSONArray();
+        
+        for (String key : keywords) {
+            if (!searchIndex.containsKey(key))
+                continue;
+            results.addAll(searchIndex.get(key));
+        }
+        return results;
+    }
+    
+    public static void main(String[] args) throws FileNotFoundException, InvalidRCException {
+        settings.Settings.loadSettings();
+        buildIndex();
+        JSONArray res = query("test dert");
+        System.out.println(res);
     }
 }
