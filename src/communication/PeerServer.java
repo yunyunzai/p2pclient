@@ -43,7 +43,9 @@ public class PeerServer {
 
 
 	public void startPeerServer()
-	{		
+	{	
+		peerThreads = new HashMap<InetAddress, ClientThread>();
+		
 		if (peerServerThread==null)
 		{
 			peerServerThread=new PeerServerThread();
@@ -96,6 +98,7 @@ public class PeerServer {
 				try {
 					Socket peerSocket=peerServerSocket.accept();
 					ClientThread oldPeerThread;
+					
 					// if the older connection exists, terminate the older connection
 					if ((oldPeerThread=peerThreads.get(peerSocket.getInetAddress()))!=null)
 					{						
@@ -176,16 +179,17 @@ public class PeerServer {
 						bytesRead+=in.read(messageBuffer, bytesRead, 100);
 					}	
 
-					messageString = new String(messageBuffer, "ASCII");
+					messageString = new String(messageBuffer, "ASCII").trim();
+					
 					System.out.println("Received message: "+messageString+" from client ip: "+clientSocket.getInetAddress());
 					
 					//TODO: add more cases for client to client communication
-					if(messageString.equals("ER\r\n"))
+					if(messageString.equals("ER"))
 					{
 						throw new Exception("An error occurred on the other side.");
 					}
 					// search request
-					else if(messageString.equals("SEARCH\r\n"))
+					else if(messageString.equals("SEARCH"))
 					{
 						throw new Exception("An error occurred on the other side.");
 					}
@@ -200,7 +204,7 @@ public class PeerServer {
 						new UploadManager(this.clientSocket,file).start_upload();
 						
 					}
-					else if(messageString.equals("OK\r\n"))
+					else if(messageString.equals("OK"))
 					{
 						throw new Exception("The other side didn't respond properly.");
 					}
