@@ -19,6 +19,7 @@ import org.json.simple.parser.JSONParser;
 
 import download.UploadManager;
 
+import search.LocalShares;
 import settings.Settings;
 
 
@@ -29,7 +30,9 @@ public class PeerServer {
 	private Thread peerServerThread;
 	private boolean peerServerUp = false;
 	private int numPeerConnection=0;
-
+	public static ArrayList<UploadManager> listofUploads=new ArrayList<UploadManager>(); 
+	
+	
 	public PeerServer()
 	{
 		try {
@@ -189,19 +192,21 @@ public class PeerServer {
 						throw new Exception("An error occurred on the other side.");
 					}
 					// search request
-					else if(messageString.equals("SEARCH"))
+					else if(messageString.indexOf("SEARCH", 0)==0)
 					{
-						throw new Exception("An error occurred on the other side.");
+						String query=messageString.substring(6);
+						JSONArray jsarr=LocalShares.query(query);
+						out.write(jsarr.toJSONString().getBytes("ASCII"));
+						out.flush();
 					}
 					// handle download request
 					else if(messageString.indexOf("DOWNLOAD", 0)==0)
 					{
-						JSONParser parser = new JSONParser();
-						JSONObject jsonFile = (JSONObject)parser.parse(messageString.substring(9));
-						
-						File file=new File((String)jsonFile.get("path"));
-						
-						new UploadManager(this.clientSocket,file).start_upload();
+						String fileHash = messageString.substring(9);
+						File file=LocalShares.getFile(fileHash);
+						UploadManager um=new UploadManager(this.clientSocket,file);
+						PeerServer.listofUploads.add(um);
+						um.start_upload();
 						
 					}
 					else if(messageString.equals("OK"))
