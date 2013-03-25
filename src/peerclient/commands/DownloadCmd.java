@@ -4,9 +4,11 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+
+import com.google.common.hash.Hashing;
+import com.google.common.io.Files;
 
 import settings.Settings;
 
@@ -23,6 +25,11 @@ public class DownloadCmd implements Runnable {
 		this.fileHash = fileHash;
 		this.fileName = fileName;
 		this.fileSizeBytes = fileSizeBytes;
+	}
+	
+	public void exit()
+	{
+		exit = true;
 	}
 	
 	public void run() 
@@ -50,21 +57,40 @@ public class DownloadCmd implements Runnable {
             while ((i = fileInput.read()) != -1)
             {
             	if(exit)
-            	{
-            		//TODO: Stop downloading
+            	{            		
+            		break;
             	}
             	fileOutput.write(i);
             	bytesReceived++;
             }
-            fileOutput.flush();
             
-            if(bytesReceived != fileSizeBytes)
+            if(exit)
             {
-            	//TODO: Size of file downloaded is not the same as the metadata
+            	//We don't want to download anymore, so delete the file we were creating
+            	if(destFile.exists())
+            	{
+            		destFile.delete();
+            	}
             }
             else
             {
-            	//TODO: Calculate hash of new file?
+	            fileOutput.flush();
+	            
+	            if(bytesReceived != fileSizeBytes)
+	            {
+	            	//TODO: Size of file downloaded is not the same as the metadata, what do we do?
+	            	//Throw exception?
+	            }
+	            else
+	            {
+	            	//TODO: Calculate hash of new file?
+	            	String hash = Files.hash(destFile, Hashing.sha1()).toString();
+	            	if(!fileHash.equals(hash))
+	            	{
+	            		//TODO: The hash doesn't match, what do we do?
+	            		//Throw exception?
+	            	}
+	            }
             }
 		} 
 		catch (Exception e) 
@@ -84,10 +110,10 @@ public class DownloadCmd implements Runnable {
 				
 	}
 	
-	public void handleResponse(String responeString)
-	{
-		
-	}
+//	public void handleResponse(String responeString)
+//	{
+//		
+//	}
 	
 	public Socket getSocket()
 	{

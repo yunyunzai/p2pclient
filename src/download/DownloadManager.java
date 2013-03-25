@@ -9,6 +9,7 @@ import java.net.Socket;
 
 import settings.Settings;
 
+@Deprecated
 public class DownloadManager 
 {
 	private String ip, fileHash, fileName;
