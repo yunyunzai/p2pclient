@@ -32,6 +32,7 @@ import data.ClientInfo;
 import peerclient.PeerClient;
 
 public class ClientUI {
+	private static ClientUI instance = null;
 
 	public static JFrame frame;
 	private JMenuItem mntmConnect;
@@ -43,36 +44,27 @@ public class ClientUI {
 	Connection conn;
 	private JTabbedPane tabbedPane;
 
-	/**
-	 * Launch the application.
-	 */
-	public static void main(String[] args) {
-	    
-	    try {
-            Settings.loadSettings();
-            LocalShares.buildIndex();
-        } catch (FileNotFoundException e1) {
-            System.out.println("ERROR: " + Settings.CONF_FILE + " not found");
-        } catch (InvalidRCException e1) {
-            System.out.println("ERROR: failed to parse " + Settings.CONF_FILE);
-        }
-	    
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					ClientUI window = new ClientUI();
-					window.frame.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-	}
-
+	
 	/**
 	 * Create the application.
 	 */
-	public ClientUI() {
+	protected ClientUI() 
+	{
+		
+	}
+	
+	public static ClientUI getInstance()
+	{
+		if (instance == null)
+		{
+			instance = new ClientUI();
+		}
+		
+		return instance;
+	}
+	
+	public void initialize()
+	{
 		initializeUI();
 		initializePeerServer();
 		initializePeerClient();
