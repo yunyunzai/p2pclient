@@ -2,11 +2,13 @@ package ui;
 
 import java.awt.EventQueue;
 
+import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JMenuBar;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
 
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
@@ -21,7 +23,13 @@ import communication.PeerServer;
 
 import java.awt.BorderLayout;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
+
 import javax.swing.JTabbedPane;
+
+import data.ClientInfo;
+
+import peerclient.PeerClient;
 
 public class ClientUI {
 
@@ -31,6 +39,7 @@ public class ClientUI {
 	private JMenuItem mntmDisconnect;
 	private JTextArea txtLog;
 	PeerServer peerServer;
+	PeerClient peerClient;
 	Connection conn;
 	private JTabbedPane tabbedPane;
 
@@ -66,6 +75,7 @@ public class ClientUI {
 	public ClientUI() {
 		initializeUI();
 		initializePeerServer();
+		initializePeerClient();
 	}
 
 	/**
@@ -132,7 +142,30 @@ public class ClientUI {
 		
 		tabbedPane = new JTabbedPane(JTabbedPane.TOP);
 		
+		// search tab
 		JPanel panelSearch = new JPanel(false);
+		// search text field
+		final JTextField searchField = new JTextField(30);
+		panelSearch.add(searchField);
+		// search button
+		JButton searchButton = new JButton("SEARCH");
+		searchButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e)
+			{
+				String searchString = searchField.getText();
+				
+				try {
+					System.out.println("HELLO");
+					ArrayList<ClientInfo> peerList = conn.listPeers();
+					peerClient.searchAllPeers(peerList, searchString);
+				} catch (Exception ex)
+				{
+					System.out.println(ex.getMessage());
+				}
+			}
+		});
+		panelSearch.add(searchButton);
+		
 		tabbedPane.addTab("Search", panelSearch);
 		JPanel panelDownload = new JPanel(false);
 		tabbedPane.addTab("Download", panelDownload);
@@ -152,6 +185,12 @@ public class ClientUI {
 		peerServer=new PeerServer();
 		start_peer_server();
 	}
+	
+	private void initializePeerClient()
+	{
+		peerClient = new PeerClient();
+	}
+	
 	private void start_peer_server()
 	{
 		peerServer.startPeerServer();

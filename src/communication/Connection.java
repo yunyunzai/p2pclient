@@ -2,17 +2,21 @@ package communication;
 
 import java.util.ArrayList;
 
+import peerclient.PeerClient;
+
 import settings.Settings;
 
 import data.ClientInfo;
 
 public class Connection 
 {
+	private PeerClient pc;
 	KeepAliveThread keepAlive;
 
 	public Connection()
 	{
 		keepAlive = null;
+		pc = new PeerClient();
 	}
 
 	public void connectServer() throws Exception
@@ -39,16 +43,29 @@ public class Connection
 		try
 		{
 			listCmd.send();
+			ArrayList<ClientInfo> peerList = listCmd.getClientList();
 			
 			return listCmd.getClientList();
+			
 		}
 		catch (Exception e)
 		{
-			System.out.println(e.getMessage());
 			throw new Exception("Could not connect to the server: " + e.getMessage()); 
 		}
 	}
-
+	
+	public void searchPeers(ArrayList<ClientInfo> peerList, String searchString) throws Exception
+	{
+		try
+		{
+			pc.searchAllPeers(peerList, searchString);
+		}
+		catch (Exception e)
+		{
+			throw new Exception("Could not search peers: " + e.getMessage());
+		}
+		
+	}
 
 	public void disconnectServer() throws Exception
 	{
