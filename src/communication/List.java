@@ -8,6 +8,8 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import settings.Settings;
+
 import data.ClientInfo;
 
 public class List extends ServerConnection {
@@ -17,7 +19,7 @@ public class List extends ServerConnection {
 	
 	public List()
 	{
-		cmd = "LIST\r\n\r\n";
+		cmd = "LIST " + Settings.CLIENT_PEER_PORT +"\r\n\r\n";
 		clientList = new ArrayList<ClientInfo>();
 		
 		System.out.println("CREATING LIST");
@@ -32,22 +34,20 @@ public class List extends ServerConnection {
 		{
 			JSONParser parser = new JSONParser();
 			JSONArray jsonClientList = (JSONArray)parser.parse(response);
-//			JSONArray jsonClientList = (JSONArray)parser.parse("[{\"ip\":4112996120,\"port\":2112},{\"ip\":654321,\"port\":2000}]");
+
 			System.out.println("jsonClientList:" + jsonClientList.toString());
 			Iterator itr = jsonClientList.iterator();
 			
 			while (itr.hasNext())
 			{
 				JSONObject addr = (JSONObject) itr.next();
-				System.out.println(addr.get("ip") + ":" + addr.get("port"));
 				
 				ClientInfo c_info = new ClientInfo();
 				c_info.setIp((String)addr.get("ip"));
-				c_info.setPort(Integer.parseInt((String)addr.get("port")));
+				c_info.setPort(((Number)addr.get("port")).intValue());
+				clientList.add(c_info);
 				
 				System.out.println(c_info.getIp() + ":" + c_info.getPort());
-				
-				clientList.add(c_info);
 			}
 		}
 		catch (ParseException e)
