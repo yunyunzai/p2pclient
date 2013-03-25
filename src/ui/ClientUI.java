@@ -143,7 +143,8 @@ public class ClientUI {
 		tabbedPane = new JTabbedPane(JTabbedPane.TOP);
 		
 		// search tab
-		JPanel panelSearch = new JPanel(false);
+		
+		/*JPanel panelSearch = new JPanel(false);
 		// search text field
 		final JTextField searchField = new JTextField(30);
 		panelSearch.add(searchField);
@@ -166,7 +167,8 @@ public class ClientUI {
 		});
 		panelSearch.add(searchButton);
 		
-		tabbedPane.addTab("Search", panelSearch);
+		tabbedPane.addTab("Search", panelSearch);*/
+		tabbedPane.addTab("Search", new SearchPanel(peerClient));
 		JPanel panelDownload = new JPanel(false);
 		tabbedPane.addTab("Download", panelDownload);
 		JPanel panelLog = new JPanel(false);

@@ -20,6 +20,18 @@ public class SearchResult implements JSONAware, JSONStreamAware {
         this.hash = hash;
     }
     
+    public String getName() {
+        return file.getName();
+    }
+    
+    public String getSize() {
+        return "" + file.length();
+    }
+    
+    public String getHash() {
+        return hash;
+    }
+    
     @Override
     public void writeJSONString(Writer out) throws IOException {
         LinkedHashMap<String, Object> obj = new LinkedHashMap<String, Object>();
