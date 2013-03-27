@@ -65,9 +65,9 @@ public class ClientUI {
 	
 	public void initialize()
 	{
-		initializeUI();
 		initializePeerServer();
 		initializePeerClient();
+		initializeUI();
 	}
 
 	/**
