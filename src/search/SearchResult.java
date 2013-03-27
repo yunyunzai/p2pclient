@@ -47,19 +47,19 @@ public class SearchResult implements JSONAware, JSONStreamAware {
         
         sb.append("{");
         
-        sb.append(JSONObject.escape("name"));
+        sb.append("\""+JSONObject.escape("name")+"\"");
         sb.append(":");
         sb.append("\"" + JSONObject.escape(file.getName()) + "\"");
         
         sb.append(",");
         
-        sb.append(JSONObject.escape("size"));
+        sb.append("\""+JSONObject.escape("size")+"\"");
         sb.append(":");
         sb.append(file.length());
         
         sb.append(",");
         
-        sb.append(JSONObject.escape("hash"));
+        sb.append("\""+JSONObject.escape("hash")+"\"");
         sb.append(":");
         sb.append("\"" + JSONObject.escape(hash) + "\"");
         
