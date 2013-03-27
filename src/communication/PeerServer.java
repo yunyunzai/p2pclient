@@ -31,8 +31,8 @@ public class PeerServer {
 	private boolean peerServerUp = false;
 	private int numPeerConnection=0;
 	public static ArrayList<UploadManager> listofUploads=new ArrayList<UploadManager>(); 
-	
-	
+
+
 	public PeerServer()
 	{
 		try {
@@ -48,7 +48,7 @@ public class PeerServer {
 	public void startPeerServer()
 	{	
 		peerThreads = new HashMap<InetAddress, ClientThread>();
-		
+
 		if (peerServerThread==null)
 		{
 			peerServerThread=new PeerServerThread();
@@ -101,7 +101,7 @@ public class PeerServer {
 				try {
 					Socket peerSocket=peerServerSocket.accept();
 					ClientThread oldPeerThread;
-					
+
 					// if the older connection exists, terminate the older connection
 					if ((oldPeerThread=peerThreads.get(peerSocket.getInetAddress()))!=null)
 					{						
@@ -183,9 +183,9 @@ public class PeerServer {
 					}	
 
 					messageString = new String(messageBuffer, "ASCII").trim();
-					
+
 					System.out.println("Received message: "+messageString+" from client ip: "+clientSocket.getInetAddress());
-					
+
 					//TODO: add more cases for client to client communication
 					if(messageString.equals("ER"))
 					{
@@ -204,10 +204,18 @@ public class PeerServer {
 					{
 						String fileHash = messageString.substring(9);
 						File file=LocalShares.getFile(fileHash);
-						UploadManager um=new UploadManager(this.clientSocket,file);
-						PeerServer.listofUploads.add(um);
-						um.start_upload();
-						
+						if (file ==null)
+						{
+							out.write("ER\r\n".getBytes("ASCII"));
+							out.flush();
+						}
+						else
+						{
+							UploadManager um=new UploadManager(this.clientSocket,file);
+							PeerServer.listofUploads.add(um);
+							um.start_upload();
+						}
+
 					}
 					else if(messageString.equals("OK"))
 					{
