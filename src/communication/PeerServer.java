@@ -7,6 +7,7 @@ import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -151,6 +152,12 @@ public class PeerServer {
 		public ClientTask(Socket clientSocket)
 		{
 			this.clientSocket=clientSocket;
+			try {
+				this.clientSocket.setSoTimeout(3000);
+			} catch (SocketException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			address=clientSocket.getInetAddress();
 		}
 
@@ -198,6 +205,8 @@ public class PeerServer {
 						JSONArray jsarr=LocalShares.query(query);
 						out.write(jsarr.toJSONString().getBytes("ASCII"));
 						out.flush();
+						System.out.println("Received Search request, reply: "+jsarr.toJSONString());
+						this.clientSocket.close();
 					}
 					// handle download request
 					else if(messageString.indexOf("DOWNLOAD", 0)==0)
@@ -215,6 +224,7 @@ public class PeerServer {
 							PeerServer.listofUploads.add(um);
 							um.start_upload();
 						}
+						this.clientSocket.close();
 
 					}
 					else if(messageString.equals("OK"))
