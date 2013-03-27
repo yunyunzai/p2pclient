@@ -119,17 +119,6 @@ public class LocalShares {
      * @param query a space-separated list of keywords
      * @return a set of files that matched the query
      */
-    /*public static Set<File> query(String query) {
-        String[] keywords = query.split(delimiters);
-        Set<File> results = new HashSet<File>();
-        
-        for (String key : keywords) {
-            if (searchIndex.containsKey(key))
-                results.addAll(searchIndex.get(key));
-        }
-        return results;
-    }*/
-    
     @SuppressWarnings("unchecked")
     public static JSONArray query(String query) {
         String[] keywords = query.split(delimiters);
