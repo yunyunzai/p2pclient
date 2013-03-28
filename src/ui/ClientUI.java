@@ -24,12 +24,14 @@ import communication.PeerServer;
 import java.awt.BorderLayout;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import javax.swing.JTabbedPane;
 
 import data.ClientInfo;
 
 import peerclient.PeerClient;
+import peerclient.commands.PeerSearchResult;
 
 public class ClientUI {
 	private static ClientUI instance = null;
@@ -43,7 +45,8 @@ public class ClientUI {
 	PeerClient peerClient;
 	Connection conn;
 	private JTabbedPane tabbedPane;
-
+	private SearchPanel searchPanel;
+	
 	
 	/**
 	 * Create the application.
@@ -160,7 +163,8 @@ public class ClientUI {
 		panelSearch.add(searchButton);
 		
 		tabbedPane.addTab("Search", panelSearch);*/
-		tabbedPane.addTab("Search", new SearchPanel(peerClient));
+		searchPanel = new SearchPanel(peerClient);
+		tabbedPane.addTab("Search", searchPanel);
 		JPanel panelDownload = new JPanel(false);
 		tabbedPane.addTab("Download", panelDownload);
 		JPanel panelLog = new JPanel(false);
@@ -225,5 +229,10 @@ public class ClientUI {
 			txtLog.setText(txtLog.getText() + "\n" + e.getMessage());
 			return;
 		}
+	}
+	
+	public SearchPanel getSearchPanel()
+	{
+		return searchPanel;
 	}
 }

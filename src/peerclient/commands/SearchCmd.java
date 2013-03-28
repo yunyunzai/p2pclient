@@ -7,6 +7,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 
 import org.json.simple.JSONArray;
@@ -47,7 +49,7 @@ public class SearchCmd implements Runnable {
 			sock = new Socket(this.ip, this.port);
 			
 			out = sock.getOutputStream();  
-            out.write(cmd.getBytes("ASCII"));            
+            out.write(cmd.getBytes("ASCII"));
             out.flush();
             
             in = sock.getInputStream();
@@ -111,9 +113,16 @@ public class SearchCmd implements Runnable {
 			{
 				JSONObject result = (JSONObject) itr.next();
 				
+				String filename = (String)result.get("name");
+				int size = ((Number)result.get("size")).intValue();
+				String hash = (String)result.get("hash");
+				
 				System.out.println("Name:" + result.get("name"));
 				System.out.println("Size:" + result.get("size"));
 				System.out.println("Hash:" + result.get("hash"));
+				
+				PeerSearchResult searchResult = new PeerSearchResult(ip, port, filename, size, hash);
+				ClientUI.getInstance().getSearchPanel().addResults(Arrays.asList(searchResult));
 			}
 		}
 		catch (ParseException e)

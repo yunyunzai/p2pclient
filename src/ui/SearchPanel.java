@@ -21,6 +21,7 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableModel;
 
 import peerclient.PeerClient;
+import peerclient.commands.PeerSearchResult;
 
 import communication.Connection;
 
@@ -40,7 +41,7 @@ public class SearchPanel extends JPanel {
 	private TableModel resultsModel = new AbstractTableModel() {
 
 		private static final long serialVersionUID = 1L;
-		private List<SearchResult> results = new LinkedList<SearchResult>();
+		private List<PeerSearchResult> results = new LinkedList<PeerSearchResult>();
 		private String[] columnNames = { "Name", "Size", "Hash" };
 
 		@Override
@@ -64,7 +65,7 @@ public class SearchPanel extends JPanel {
 
 		@Override
 		public Object getValueAt(int row, int col) {
-			SearchResult result;
+			PeerSearchResult result;
 			synchronized (results) {
 				result = results.get(row);
 			}
@@ -88,11 +89,11 @@ public class SearchPanel extends JPanel {
 				return;
 			}
 			
-			if (!(value instanceof SearchResult))
+			if (!(value instanceof PeerSearchResult))
 				return;
 
 			synchronized (results) {
-				results.add((SearchResult) value);
+				results.add((PeerSearchResult) value);
 			}
 			fireTableCellUpdated(row, col);
 		}
@@ -107,13 +108,13 @@ public class SearchPanel extends JPanel {
 		resultsTable = getResultsTable();
 		this.add(new JScrollPane(resultsTable), BorderLayout.CENTER);
 
-		addResults(Arrays.asList(new SearchResult(new File("client.conf"),
-				"hash"), new SearchResult(new File("README"), "READMEhash")));
-		
-		//clearResults();
-		
-		addResults(Arrays.asList(new SearchResult(new File("client.conf"),
-				"hash"), new SearchResult(new File("README"), "READMEhash")));
+//		addResults(Arrays.asList(new SearchResult(new File("client.conf"),
+//				"hash"), new SearchResult(new File("README"), "READMEhash")));
+//		
+//		//clearResults();
+//		
+//		addResults(Arrays.asList(new SearchResult(new File("client.conf"),
+//				"hash"), new SearchResult(new File("README"), "READMEhash")));
 		
 	}
 
@@ -158,7 +159,7 @@ public class SearchPanel extends JPanel {
 			public void mouseClicked(MouseEvent e) {
 				if (e.getClickCount() == 2) {
 					int row = resultsTable.getSelectedRow();
-					SearchResult s = (SearchResult) resultsModel.getValueAt(row, 3);
+					PeerSearchResult s = (PeerSearchResult) resultsModel.getValueAt(row, 3);
 					// XXX: call download method here
 					System.out.println("Clicked "+s.getName());
 				}
@@ -168,8 +169,8 @@ public class SearchPanel extends JPanel {
 		return resultsTable;
 	}
 
-	public void addResults(Iterable<SearchResult> results) {
-		for (SearchResult result : results) {
+	public void addResults(Iterable<PeerSearchResult> results) {
+		for (PeerSearchResult result : results) {
 			resultsTable.setValueAt(result, resultsTable.getRowCount(), 0);
 		}
 	}
