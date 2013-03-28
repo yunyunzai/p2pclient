@@ -203,7 +203,8 @@ public class PeerServer {
 					{
 						String query=messageString.substring(6);
 						JSONArray jsarr=LocalShares.query(query);
-						out.write(jsarr.toJSONString().getBytes("ASCII"));
+						String outString = jsarr.toJSONString() + "\r\n\r\n";
+						out.write(outString.getBytes("ASCII"));
 						out.flush();
 						System.out.println("Received Search request, reply: "+jsarr.toJSONString());
 						this.clientSocket.close();
