@@ -104,12 +104,7 @@ public class SearchPanel extends JPanel {
 		resultsTable = getResultsTable();
 		this.add(new JScrollPane(resultsTable), BorderLayout.CENTER);
 
-		addResults(Arrays.asList(new PeerSearchResult("", 0, "test", 1, "hash?")));
-		
-		//clearResults();
-		
-		//addResults(Arrays.asList(new SearchResult(new File("client.conf"),
-		//		"hash"), new SearchResult(new File("README"), "READMEhash")));
+		//addResults(Arrays.asList(new PeerSearchResult("", 0, "test", 1, "hash?")));
 		
 	}
 
@@ -118,11 +113,11 @@ public class SearchPanel extends JPanel {
 		ActionListener searchListener = new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
+				clearResults();
 				System.out.println("Searching for: " + searchField.getText());
 
 				Connection conn = new Connection();
 				String searchString = searchField.getText();
-				addResults(Arrays.asList(new PeerSearchResult("", 0, searchString, 1, "hash?")));
 
 				try {
 					ArrayList<ClientInfo> peerList = conn.listPeers();
