@@ -5,7 +5,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -18,7 +17,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.table.AbstractTableModel;
-import javax.swing.table.TableModel;
 
 import peerclient.PeerClient;
 import peerclient.commands.PeerSearchResult;
@@ -26,8 +24,6 @@ import peerclient.commands.PeerSearchResult;
 import communication.Connection;
 
 import data.ClientInfo;
-
-import search.SearchResult;
 
 public class SearchPanel extends JPanel {
 
@@ -38,7 +34,7 @@ public class SearchPanel extends JPanel {
 	private JTextField searchField;
 	private JTable resultsTable;
 
-	private TableModel resultsModel = new AbstractTableModel() {
+	private AbstractTableModel resultsModel = new AbstractTableModel() {
 
 		private static final long serialVersionUID = 1L;
 		private List<PeerSearchResult> results = new LinkedList<PeerSearchResult>();
@@ -108,13 +104,12 @@ public class SearchPanel extends JPanel {
 		resultsTable = getResultsTable();
 		this.add(new JScrollPane(resultsTable), BorderLayout.CENTER);
 
-//		addResults(Arrays.asList(new SearchResult(new File("client.conf"),
-//				"hash"), new SearchResult(new File("README"), "READMEhash")));
-//		
-//		//clearResults();
-//		
-//		addResults(Arrays.asList(new SearchResult(new File("client.conf"),
-//				"hash"), new SearchResult(new File("README"), "READMEhash")));
+		addResults(Arrays.asList(new PeerSearchResult("", 0, "test", 1, "hash?")));
+		
+		//clearResults();
+		
+		//addResults(Arrays.asList(new SearchResult(new File("client.conf"),
+		//		"hash"), new SearchResult(new File("README"), "READMEhash")));
 		
 	}
 
@@ -127,6 +122,7 @@ public class SearchPanel extends JPanel {
 
 				Connection conn = new Connection();
 				String searchString = searchField.getText();
+				addResults(Arrays.asList(new PeerSearchResult("", 0, searchString, 1, "hash?")));
 
 				try {
 					ArrayList<ClientInfo> peerList = conn.listPeers();
@@ -160,7 +156,8 @@ public class SearchPanel extends JPanel {
 				if (e.getClickCount() == 2) {
 					int row = resultsTable.getSelectedRow();
 					PeerSearchResult s = (PeerSearchResult) resultsModel.getValueAt(row, 3);
-					// XXX: call download method here
+					ClientUI.getInstance().peerClient.downloadFileFromPeer(
+							s.getIP(), s.getPort(), s.getHash(), s.getName(), Integer.parseInt(s.getSize()));
 					System.out.println("Clicked "+s.getName());
 				}
 			}
@@ -172,6 +169,7 @@ public class SearchPanel extends JPanel {
 	public void addResults(Iterable<PeerSearchResult> results) {
 		for (PeerSearchResult result : results) {
 			resultsTable.setValueAt(result, resultsTable.getRowCount(), 0);
+			resultsModel.fireTableDataChanged();
 		}
 	}
 	
@@ -180,5 +178,6 @@ public class SearchPanel extends JPanel {
 			System.out.println("Removing");
 			resultsModel.setValueAt(null, 0, 0);
 		}
+		resultsModel.fireTableDataChanged();
 	}
 }
