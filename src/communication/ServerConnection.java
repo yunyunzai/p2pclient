@@ -5,6 +5,7 @@ import java.io.OutputStream;
 import java.net.Socket;
 
 import settings.Settings;
+import util.Network;
 
 public class ServerConnection {
 	protected static final String RESPONSE_OK = "OK\r\n";
@@ -15,7 +16,7 @@ public class ServerConnection {
 	public void send() throws Exception
 	{
 		sock = null;
-		InputStream in = null;
+		//InputStream in = null;
 		OutputStream out = null;
 		String responseString = null;
 		
@@ -32,22 +33,23 @@ public class ServerConnection {
             out.flush();
             
             //Get the response input stream
-            in = sock.getInputStream();
+            //in = sock.getInputStream();
             //TODO: make size of response configurable as well
-            byte[] response = new byte[100];
+            //byte[] response = new byte[100];
             
-            int bytesRead = in.read(response);
+            //int bytesRead = in.read(response);
             //TODO: make the size of the response as a constant
-            while(bytesRead < 3)
-            {
-            	if(bytesRead == -1)
-                {
-                	throw new Exception("Connection closed by the other side.");
-                }
+            //while(bytesRead < 3)
+            //{
+            //	if(bytesRead == -1)
+            //    {
+            //    	throw new Exception("Connection closed by the other side.");
+            //    }
             	
-            	bytesRead += in.read(response, bytesRead, 100);
-            }
-            responseString = new String(response, "ASCII");
+            //	bytesRead += in.read(response, bytesRead, 100);
+            //}
+            //responseString = new String(response, "ASCII");
+            responseString = Network.readMessage(sock);
             System.out.println(responseString);
             //TODO: check why the heck the response is not matching any of both
             if(responseString.equals("ER\r\n"))
