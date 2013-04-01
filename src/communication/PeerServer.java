@@ -225,8 +225,6 @@ public class PeerServer {
 							PeerServer.listofUploads.add(um);
 							um.start_upload();
 						}
-						this.clientSocket.close();
-
 					}
 					else if(messageString.equals("OK"))
 					{

@@ -124,6 +124,7 @@ public class DownloadCmd implements Runnable {
 		{
 			try
 			{
+				//TODO: delete the file if it hasn't been downloaded successfully
 				fileInput.close();
 				fileOutput.close();
 				sock.close();
