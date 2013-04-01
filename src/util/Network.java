@@ -20,7 +20,7 @@ public class Network {
 		while (true) {
 			
 			if ((rv = in.read(buf, 0, BUFFER_SIZE)) == -1) {
-				return null;
+				return msg;
 			}
 			
 			msg += new String(buf, 0, rv);
