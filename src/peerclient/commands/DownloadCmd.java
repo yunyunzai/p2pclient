@@ -44,7 +44,7 @@ public class DownloadCmd implements Runnable {
 		
 		try 
 		{
-			String cmd = "DOWNLOAD " + fileHash;
+			String cmd = "DOWNLOAD " + fileHash + "\r\n";
 			sock = new Socket(ip, port);
 			cmdOutput = sock.getOutputStream();
 			cmdOutput.write(cmd.getBytes("ASCII"));            
