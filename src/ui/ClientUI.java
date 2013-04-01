@@ -176,7 +176,7 @@ public class ClientUI {
 		txtLog.setEditable(false);
 		frame.getContentPane().add(tabbedPane, BorderLayout.CENTER);
 		
-				
+		connect_server();
 	}
 	private void initializePeerServer()
 	{
