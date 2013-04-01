@@ -4,6 +4,7 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.OutputStream;
 import java.net.Socket;
 
@@ -52,7 +53,7 @@ public class DownloadCmd implements Runnable {
 			fileInput = new BufferedInputStream(sock.getInputStream());
 			destFile = new File(Settings.SHARED_FOLDER + "/" + fileName);
 	        fileOutput = new BufferedOutputStream(new FileOutputStream(destFile));
-	        
+	     
 	        int i;
             while ((i = fileInput.read()) != -1)
             {
@@ -76,19 +77,41 @@ public class DownloadCmd implements Runnable {
             {
 	            fileOutput.flush();
 	            
+	            if(bytesReceived < 10)
+	            {	            	
+	            	//Check if it's not an error message
+	            	char msg[] = new char[10];
+	            	FileReader reader = new FileReader(destFile);
+	            	reader.read(msg);
+	            	reader.close();
+	            	String response = new String(msg);
+	            	if(response.equals("ER\r\n"))
+	                {
+	            		//It's an error message, it means the server doesn't have the file
+	            		throw new Exception("The other side replied saying it doesn't have the requested file.");
+	                }
+	            }
+	            
 	            if(bytesReceived != fileSizeBytes)
 	            {
-	            	//TODO: Size of file downloaded is not the same as the metadata, what do we do?
-	            	//Throw exception?
+	            	//It's not the file we wanted, or at least not with the same size. Let's delete it
+	            	if(destFile.exists())
+	            	{
+	            		destFile.delete();
+	            	}
+	            	throw new Exception("The size of the file downloaded doesn't match with the size of the file requested.");
 	            }
 	            else
-	            {
-	            	//TODO: Calculate hash of new file?
+	            {	
 	            	String hash = Files.hash(destFile, Hashing.sha1()).toString();
 	            	if(!fileHash.equals(hash))
 	            	{
-	            		//TODO: The hash doesn't match, what do we do?
-	            		//Throw exception?
+	            		//It's not the file we wanted, or at least not with the same hash. Let's delete it
+		            	if(destFile.exists())
+		            	{
+		            		destFile.delete();
+		            	}
+		            	throw new Exception("The hash of the file downloaded doesn't match with the hash of the file requested.");
 	            	}
 	            }
             }
@@ -109,11 +132,6 @@ public class DownloadCmd implements Runnable {
 		}
 				
 	}
-	
-//	public void handleResponse(String responeString)
-//	{
-//		
-//	}
 	
 	public Socket getSocket()
 	{
