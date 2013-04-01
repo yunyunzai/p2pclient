@@ -21,6 +21,7 @@ import data.ClientInfo;
 import search.SearchResult;
 import settings.Settings;
 import ui.ClientUI;
+import util.Network;
 
 public class SearchCmd implements Runnable {
 	protected String cmd;
@@ -40,7 +41,6 @@ public class SearchCmd implements Runnable {
 	public void run()
 	{
 		sock = null;
-		InputStream in = null;
 		OutputStream out = null;
 		String responseString = null;
 		
@@ -52,21 +52,7 @@ public class SearchCmd implements Runnable {
             out.write(cmd.getBytes("ASCII"));
             out.flush();
             
-            in = sock.getInputStream();
-            
-            byte[] response = new byte[100];
-            int bytesRead = 0;
-            while(bytesRead < 3)
-            {
-            	if(bytesRead == -1)
-                {
-                	throw new Exception("Connection closed by the other side.");
-                }
-            	
-            	bytesRead += in.read(response, bytesRead, 100);
-            }
-            
-            responseString = new String(response, "ASCII").trim();
+            responseString = Network.readMessage(sock).trim();
 
             if(responseString.equals("ER"))
             {
@@ -84,7 +70,6 @@ public class SearchCmd implements Runnable {
             try
             {
             	sock.close();
-            	in.close();
             	out.close();
             	
             	handleResponse(responseString);

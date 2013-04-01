@@ -170,27 +170,14 @@ public class PeerServer {
 
 		public void handlePeerMessage()
 		{
-			//InputStream in = null;
 			OutputStream out = null;
 			String messageString = null;
 			//Get the data output stream  
 			try {
 				out = clientSocket.getOutputStream();
-				//Get the response input stream
-				//in = clientSocket.getInputStream();
 				// infinite loop to wait for client message and handles them
 				while(true)
 				{
-					//TODO: make size of response configurable as well
-					//byte[] messageBuffer = new byte[100];
-					//int bytesRead=0;
-					//TODO: make the size of the response as a constant
-					//while (bytesRead<3)
-					//{
-					//	bytesRead+=in.read(messageBuffer, bytesRead, 100);
-					//}	
-
-					//messageString = new String(messageBuffer, "ASCII").trim();
 					messageString = Network.readMessage(clientSocket).trim();
 
 					System.out.println("Received message: "+messageString+" from client ip: "+clientSocket.getInetAddress());
