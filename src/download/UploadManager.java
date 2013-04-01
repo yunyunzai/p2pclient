@@ -54,7 +54,7 @@ public class UploadManager
 			}
 			catch(Exception e)
 			{
-				
+				e.printStackTrace();
 			}
 			finally
 			{
@@ -64,7 +64,7 @@ public class UploadManager
 					fileOutput.close();
 					sock.close();
 				}
-	            catch(Exception e){}
+	            catch(Exception e){ e.printStackTrace(); }
 			}
 		}
 		
