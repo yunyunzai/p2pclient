@@ -32,23 +32,6 @@ public class ServerConnection {
             out.write(cmd.getBytes("ASCII"));            
             out.flush();
             
-            //Get the response input stream
-            //in = sock.getInputStream();
-            //TODO: make size of response configurable as well
-            //byte[] response = new byte[100];
-            
-            //int bytesRead = in.read(response);
-            //TODO: make the size of the response as a constant
-            //while(bytesRead < 3)
-            //{
-            //	if(bytesRead == -1)
-            //    {
-            //    	throw new Exception("Connection closed by the other side.");
-            //    }
-            	
-            //	bytesRead += in.read(response, bytesRead, 100);
-            //}
-            //responseString = new String(response, "ASCII");
             responseString = Network.readMessage(sock);
             System.out.println(responseString);
             //TODO: check why the heck the response is not matching any of both
