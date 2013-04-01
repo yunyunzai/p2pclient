@@ -191,7 +191,7 @@ public class PeerServer {
 					//}	
 
 					//messageString = new String(messageBuffer, "ASCII").trim();
-					messageString = Network.readMessage(clientSocket);
+					messageString = Network.readMessage(clientSocket).trim();
 
 					System.out.println("Received message: "+messageString+" from client ip: "+clientSocket.getInetAddress());
 
