@@ -153,6 +153,7 @@ public class SearchPanel extends JPanel {
 					PeerSearchResult s = (PeerSearchResult) resultsModel.getValueAt(row, 3);
 					ClientUI.getInstance().peerClient.downloadFileFromPeer(
 							s.getIP(), s.getPort(), s.getHash(), s.getName(), Integer.parseInt(s.getSize()));
+					ClientUI.getInstance().tabbedPane.setSelectedIndex(1);
 					System.out.println("Clicked "+s.getName());
 				}
 			}

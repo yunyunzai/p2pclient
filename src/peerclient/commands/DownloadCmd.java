@@ -7,17 +7,24 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.text.DecimalFormat;
+import java.util.Date;
 
 import com.google.common.hash.Hashing;
 import com.google.common.io.Files;
 
 import settings.Settings;
+import ui.ClientUI;
 
-public class DownloadCmd implements Runnable {
+public class DownloadCmd implements Runnable 
+{
 	protected Socket sock;
-	boolean exit = false;
+	private boolean exit = false;
 	private String ip, fileHash, fileName;
 	private int port, fileSizeBytes;
+	private int bytesReceived, bytesPreviouslyReceived;
+	private Date previousTime;
+	private String speed;
 	
 	public DownloadCmd(String ip, int port, String fileHash, String fileName, int fileSizeBytes)
 	{
@@ -26,6 +33,89 @@ public class DownloadCmd implements Runnable {
 		this.fileHash = fileHash;
 		this.fileName = fileName;
 		this.fileSizeBytes = fileSizeBytes;
+		
+		this.speed = "0 B/s";
+		this.bytesReceived = 0;
+		this.bytesPreviouslyReceived = 0;
+		this.previousTime = new Date();
+		
+		synchronized(ClientUI.getInstance().panelDownload.downloads)
+		{
+			ClientUI.getInstance().panelDownload.downloads.add(this);
+		}	
+	}
+	
+	public String getSource()
+	{
+		return ip + ":" + port;
+	}
+	
+	public String getFileName()
+	{
+		return fileName;
+	}
+	
+	private String getSizeFormated(float sizeBytes)
+	{
+		float returnSize = sizeBytes;
+		//Return in bytes
+		String returnLabel = " B";
+		if(returnSize > 1024)
+		{
+			//Return in Kbytes
+			returnLabel = " KB";
+			returnSize = returnSize / 1024;
+			if(returnSize > 1024)
+			{
+				//Return in Mbytes
+				returnLabel = " MB";
+				returnSize = returnSize / 1024;
+				if(returnSize > 1024)
+				{
+					returnSize = returnSize / 1024;
+					//Return in Gbytes
+					returnLabel = " GB";
+				}
+			}
+		}		
+		return new DecimalFormat("#.##").format(returnSize) + returnLabel;
+	}
+	
+	public String getFileSize()
+	{
+		return this.getSizeFormated(fileSizeBytes);
+	}
+	
+	public String getDownloaded()
+	{
+		return this.getSizeFormated(bytesReceived);
+	}
+	
+	public void updateSpeed()
+	{
+		Date now = new Date();
+		long secondsPassed = (now.getTime() - previousTime.getTime()) / 1000;
+		long amountDownloaded = bytesReceived - bytesPreviouslyReceived;
+		
+		previousTime = now;
+		bytesPreviouslyReceived = bytesReceived;
+		
+		if(secondsPassed == 0)
+		{
+			return;
+		}
+		
+		this.speed = this.getSizeFormated(amountDownloaded / secondsPassed) + "/s";
+	}
+	
+	public String getSpeed()
+	{
+		return speed;
+	}
+	
+	public float getProgress()
+	{
+		return bytesReceived / fileSizeBytes;
 	}
 	
 	public void exit()
@@ -40,7 +130,7 @@ public class DownloadCmd implements Runnable {
 		BufferedInputStream fileInput = null;
 		BufferedOutputStream fileOutput = null;
 		File destFile = null;
-		int bytesReceived = 0;
+		bytesReceived = 0;
 		
 		try 
 		{
@@ -131,7 +221,11 @@ public class DownloadCmd implements Runnable {
 			}
             catch(Exception e){}				
 		}
-				
+		
+		synchronized(ClientUI.getInstance().panelDownload.downloads)
+		{
+			ClientUI.getInstance().panelDownload.downloads.remove(this);
+		}				
 	}
 	
 	public Socket getSocket()

@@ -7,13 +7,13 @@ import peerclient.commands.*;
 
 public class PeerClient {
 	private HashMap<String, Thread> peerSearchThreads;
-	private HashMap<String, Thread> peerDownloadThreads;
+	//private HashMap<String, Thread> peerDownloadThreads;
 	
 	
 	public PeerClient()
 	{
 		peerSearchThreads = new HashMap<String, Thread>();
-		peerDownloadThreads = new HashMap<String, Thread>();
+		//peerDownloadThreads = new HashMap<String, Thread>();
 	}
 	
 	// search all clients
@@ -35,7 +35,7 @@ public class PeerClient {
 	public void downloadFileFromPeer(String ip, int port, String fileHash, String fileName, int fileSizeBytes)
 	{
 		Thread downloadThread = new Thread(new DownloadCmd(ip, port, fileHash, fileName, fileSizeBytes));
-		peerDownloadThreads.put(ip + Integer.toString(port), downloadThread);
+		//peerDownloadThreads.put(ip + Integer.toString(port), downloadThread);
 		downloadThread.start();
 		
 		System.out.println("starting Download thread on: " + ip + ":" + port);
@@ -46,10 +46,10 @@ public class PeerClient {
 		return peerSearchThreads;
 	}
 	
-	public HashMap<String, Thread> getDownloadThreads()
-	{
-		return peerDownloadThreads;
-	}
+//	public HashMap<String, Thread> getDownloadThreads()
+//	{
+//		return peerDownloadThreads;
+//	}
 	
 	private class CheckSearchThreads extends Thread
 	{

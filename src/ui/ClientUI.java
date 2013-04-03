@@ -31,6 +31,7 @@ import javax.swing.JTabbedPane;
 import data.ClientInfo;
 
 import peerclient.PeerClient;
+import peerclient.commands.DownloadCmd;
 import peerclient.commands.PeerSearchResult;
 
 public class ClientUI {
@@ -44,8 +45,9 @@ public class ClientUI {
 	PeerServer peerServer;
 	PeerClient peerClient;
 	Connection conn;
-	private JTabbedPane tabbedPane;
+	public JTabbedPane tabbedPane;
 	private SearchPanel searchPanel;
+	public DownloadPanel panelDownload;
 	
 	
 	/**
@@ -66,11 +68,39 @@ public class ClientUI {
 		return instance;
 	}
 	
+	private class UpdateDownloadTableThread extends Thread {
+	    public void run() 
+	    {
+	    	while(true)
+	    	{
+	    		try {
+					Thread.sleep(1500);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+		    	synchronized(ClientUI.getInstance().panelDownload.downloads)
+				{
+		    		for(DownloadCmd download : ClientUI.getInstance().panelDownload.downloads)
+		    		{
+		    			download.updateSpeed();
+		    		}
+				}
+		    	synchronized(ClientUI.getInstance().panelDownload.dowloadTableModel)
+				{
+		    		ClientUI.getInstance().panelDownload.dowloadTableModel.fireTableDataChanged();
+				}		    	
+	    	}
+	    }
+	}
+	
 	public void initialize()
 	{
 		initializePeerServer();
 		initializePeerClient();
 		initializeUI();
+		//Create a thread to keep updating the download panel
+		new UpdateDownloadTableThread().start();
 	}
 
 	/**
@@ -165,7 +195,7 @@ public class ClientUI {
 		tabbedPane.addTab("Search", panelSearch);*/
 		searchPanel = new SearchPanel(peerClient);
 		tabbedPane.addTab("Search", searchPanel);
-		JPanel panelDownload = new JPanel(false);
+		panelDownload = new DownloadPanel();
 		tabbedPane.addTab("Download", panelDownload);
 		JPanel panelLog = new JPanel(false);
 		tabbedPane.addTab("Log", panelLog);

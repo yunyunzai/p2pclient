@@ -32,7 +32,7 @@ public class PeerServer {
 	private Thread peerServerThread;
 	private boolean peerServerUp = false;
 	private int numPeerConnection=0;
-	public static ArrayList<UploadManager> listofUploads=new ArrayList<UploadManager>(); 
+	//public static ArrayList<UploadManager> listofUploads=new ArrayList<UploadManager>(); 
 
 
 	public PeerServer()
@@ -211,7 +211,7 @@ public class PeerServer {
 						else
 						{
 							UploadManager um=new UploadManager(this.clientSocket,file);
-							PeerServer.listofUploads.add(um);
+							//PeerServer.listofUploads.add(um);
 							um.start_upload();
 						}
 					}
