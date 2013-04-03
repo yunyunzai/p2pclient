@@ -26,6 +26,8 @@ public class DownloadCmd implements Runnable
 	private Date previousTime;
 	private String speed;
 	
+	private long currentSeq=0;
+	
 	public DownloadCmd(String ip, int port, String fileHash, String fileName, int fileSizeBytes)
 	{
 		this.ip = ip;
@@ -134,7 +136,7 @@ public class DownloadCmd implements Runnable
 		
 		try 
 		{
-			String cmd = "DOWNLOAD " + fileHash + "\r\n";
+			String cmd = "DOWNLOAD " + fileHash + " "+currentSeq+"\r\n";
 			sock = new Socket(ip, port);
 			cmdOutput = sock.getOutputStream();
 			cmdOutput.write(cmd.getBytes("ASCII"));            

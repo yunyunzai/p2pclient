@@ -13,7 +13,7 @@ public class UploadManager
 	private File file;
 	private UploadThread uploadThread;
 	
-	public UploadManager(Socket sock, File fileToUpload)
+	public UploadManager(Socket sock, File fileToUpload, long seq)
 	{
 		this.sock = sock;
 		this.file = fileToUpload;
