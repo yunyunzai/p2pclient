@@ -145,12 +145,19 @@ public class DownloadCmd implements Runnable
 		
 		
 		try 
-		{	
-			unreceivedSeqs = readLogFile(fileHash);
-			
+		{				
 			
 			// create the dummy file first
 			destFile = new File(Settings.SHARED_FOLDER + "/" + fileName);
+			
+			// if the file already exists and finished downloading already don't need to download anything
+			if (destFile.exists())
+			{
+				if (Files.hash(destFile, Hashing.sha1()).toString().equals(fileHash))
+					return;
+				
+			}
+			unreceivedSeqs = readLogFile(fileHash);
 			RandomAccessFile f = new RandomAccessFile(destFile, "rw");
 			f.setLength(fileSizeBytes);
 			f.close();
@@ -190,7 +197,7 @@ public class DownloadCmd implements Runnable
 					fileOutput.close();
 					rfile.close();
 					logProgress(fileHash,currentSeq);
-					bytesReceived++;
+					bytesReceived+=i;
 				}
 				//currentSeq++;
 				
@@ -233,7 +240,7 @@ public class DownloadCmd implements Runnable
 //					else
 //					{	
 //					String hash = Files.hash(destFile, Hashing.sha1()).toString();
-//					if(!new String(hashRead).equals(hash))
+//					if(!fileHash.equals(hash))
 //					{
 //						//It's not the file we wanted, or at least not with the same hash. Let's delete it
 //						if(destFile.exists())
@@ -244,8 +251,20 @@ public class DownloadCmd implements Runnable
 //					}
 //					}
 				}
+				
 			}
-			
+			// when download finished check if the downloaded file is the same
+			String hash = Files.hash(destFile, Hashing.sha1()).toString();
+			if(!fileHash.equals(hash))
+			{
+				//It's not the file we wanted, or at least not with the same hash. Let's delete it
+				if(destFile.exists())
+				{
+					destFile.delete();
+				}
+				throw new Exception("The hash of the file downloaded doesn't match with the hash of the file requested.");
+			}
+			deleteLogFile(fileHash);
 		} 
 		catch (Exception e) 
 		{
@@ -284,6 +303,7 @@ public class DownloadCmd implements Runnable
 				if (logFile.length()==0)
 				{
 					System.out.println("Creating log file!!");
+					//f.writeInt(0);
 					for (int i=0;i<=fileSizeBytes/Settings.CHUNK_SIZE;i++)
 					{
 						
@@ -295,6 +315,7 @@ public class DownloadCmd implements Runnable
 				else
 				{
 					int i;
+					//bytesReceived=f.readInt();
 					while ((i=f.readInt())!=-1)
 						result.add(i);					
 				}
@@ -319,6 +340,7 @@ public class DownloadCmd implements Runnable
 		try {
 			RandomAccessFile f=new RandomAccessFile(logFile,"rw");
 			this.unreceivedSeqs.remove(seq);
+			//f.writeInt(bytesReceived);
 			for (int i:unreceivedSeqs)
 			{
 				f.writeInt(i);
@@ -329,5 +351,10 @@ public class DownloadCmd implements Runnable
 			e.printStackTrace();
 		}
 		
+	}
+	private void deleteLogFile(String fileHash)
+	{
+		File logFile=new File(Settings.SHARED_FOLDER+"/"+fileHash+".tmp");
+		logFile.delete();
 	}
 }
