@@ -38,14 +38,22 @@ public class P2PClient {
 	 */
 	public static void main(String[] args) {
 	    
+		// load settings from the conf file
 	    try {
             Settings.loadSettings();
-            LocalShares.buildIndex();
         } catch (FileNotFoundException e1) {
             System.out.println("ERROR: " + Settings.CONF_FILE + " not found");
         } catch (InvalidRCException e1) {
             System.out.println("ERROR: failed to parse " + Settings.CONF_FILE);
         }
+	    
+	    // build the index in a separate thread
+	    new Thread(new Runnable() {
+			@Override
+			public void run() {
+				LocalShares.buildIndex();
+			}
+        }).start();
 	    
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
