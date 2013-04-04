@@ -17,15 +17,15 @@ public class UploadManager
 	private Socket sock;
 	private ChunkedFile file;
 	private UploadThread uploadThread;
-	private long seqNum;
+	private int seqNum;
 	private String chunkHash;
 	
-	public UploadManager(Socket sock, String fileHash, long seq)
+	public UploadManager(Socket sock, String fileHash, int seq)
 	{
 		this.sock = sock;
 		this.file = LocalShares.getFile(fileHash);
 		this.seqNum=seq;
-		this.chunkHash= this.file.getChunkHash((int)seqNum);
+		this.chunkHash= this.file.getChunkHash(seqNum);
 		this.uploadThread = null;
 	}
 	
@@ -50,20 +50,23 @@ public class UploadManager
 			{
 				RandomAccessFile chunkFile=new RandomAccessFile(file,"r");
 				chunkFile.seek(seqNum*Settings.CHUNK_SIZE);
-				byte[] chunkToUpload=new byte[Settings.CHUNK_SIZE];
-				chunkFile.read(chunkToUpload,0,Settings.CHUNK_SIZE);
+				byte[] chunkToUpload=new byte[Math.min((int)(file.length()-seqNum*Settings.CHUNK_SIZE),Settings.CHUNK_SIZE)];
+				
+				//chunkFile.read(chunkToUpload,0,Settings.CHUNK_SIZE);
 				
 				fileInput = new BufferedInputStream(new FileInputStream(file));
 				fileOutput = new BufferedOutputStream(sock.getOutputStream());
 				
 				int i;
-	            while ((i = fileInput.read()) != -1)
+	            if ((i=chunkFile.read(chunkToUpload,0,Math.min((int)(file.length()-seqNum*Settings.CHUNK_SIZE),Settings.CHUNK_SIZE))) != -1)
 	            {
 	            	if(exit)
 	            	{
 	            		//TODO: Stop uploading
 	            	}
-	            	fileOutput.write(i);	            	
+	            	System.out.println("sending: "+chunkToUpload.length+" bytes");
+	            	//fileOutput.write(chunkHash.getBytes("ASCII"));
+	            	fileOutput.write(chunkToUpload);	            	
 	            }
 	            fileOutput.flush();
 			}

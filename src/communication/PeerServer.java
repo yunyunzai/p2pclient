@@ -204,7 +204,7 @@ public class PeerServer {
 						String[] results=messageString.split(" |\r\n");
 						//System.out.println(results[0]+" "+results[1]+" "+results[2]);
 						String fileHash = results[1];						
-						long seqNum= Long.parseLong(results[2]);
+						int seqNum= Integer.parseInt(results[2]);
 						
 						File file=LocalShares.getFile(fileHash);
 						

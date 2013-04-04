@@ -33,6 +33,7 @@ public class SearchCmd implements Runnable {
 	public SearchCmd(String ip, int port, String searchString)
 	{
 		this.ip = ip;
+		//this.ip="192.168.1.65";
 		this.port = port;
 		this.searchString = searchString;
 		cmd = "SEARCH " + searchString + "\r\n\r\n";
