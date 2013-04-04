@@ -9,6 +9,8 @@ import org.yaml.snakeyaml.Yaml;
 
 public class Settings {
     
+	public static final int CHUNK_SIZE = 1000000;
+	
     public static String SERVER_IP;
     public static int SERVER_PORT;
     public static int CLIENT_PEER_PORT;

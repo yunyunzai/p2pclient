@@ -3,6 +3,7 @@ package search;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -42,7 +43,7 @@ public class LocalShares {
     };
     
     /** File index used for lookup; keys are full (absolute) path names */
-    private static Map<String, File> lookupIndex = new HashMap<String, File>();
+    private static Map<String, ChunkedFile> lookupIndex = new HashMap<String, ChunkedFile>();
     
     /** Set of keywords which should not be indexed (in the search index) */
     private static final Set<String> ignoredKeys = new HashSet<String>
@@ -78,6 +79,17 @@ public class LocalShares {
                 continue;
             }
             
+            ChunkedFile cf;
+            try {
+				cf = new ChunkedFile(file);
+			} catch (NoSuchAlgorithmException e1) {
+				e1.printStackTrace();
+				continue;
+			} catch (IOException e1) {
+				System.err.println("Failed to chunk file "+file.getPath());
+				continue;
+			}
+            
             String hash;
             try { hash = Files.hash(file, Hashing.sha1()).toString(); }
             catch (IOException e) {
@@ -85,7 +97,7 @@ public class LocalShares {
                 continue;
             }
             
-            lookupIndex.put(hash, file);
+            lookupIndex.put(hash, cf);
             System.out.println("Hash of '"+file.getName()+"' is "+hash);
             
             // add file to file set for each key in file name
@@ -110,7 +122,7 @@ public class LocalShares {
      * @return the File object corresponding to the given path, or null if
      *         no such file is indexed
      */
-    public static File getFile(String hash) {
+    public static ChunkedFile getFile(String hash) {
         return lookupIndex.get(hash);
     }
     

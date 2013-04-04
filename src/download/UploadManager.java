@@ -8,23 +8,24 @@ import java.io.FileOutputStream;
 import java.io.RandomAccessFile;
 import java.net.Socket;
 
+import search.ChunkedFile;
 import search.LocalShares;
+import settings.Settings;
 
 public class UploadManager 
 {
 	private Socket sock;
-	private File file;
+	private ChunkedFile file;
 	private UploadThread uploadThread;
 	private long seqNum;
 	private String chunkHash;
-	private int CHUNKSIZE = 1000000;
 	
 	public UploadManager(Socket sock, String fileHash, long seq)
 	{
 		this.sock = sock;
 		this.file = LocalShares.getFile(fileHash);
 		this.seqNum=seq;
-		this.chunkHash=LocalShares.getChunkHash(fileHash,seqNum);;
+		this.chunkHash= this.file.getChunkHash((int)seqNum);
 		this.uploadThread = null;
 	}
 	
@@ -48,9 +49,9 @@ public class UploadManager
 			try
 			{
 				RandomAccessFile chunkFile=new RandomAccessFile(file,"r");
-				chunkFile.seek(seqNum*CHUNKSIZE);
-				byte[] chunkToUpload=new byte[CHUNKSIZE];
-				chunkFile.read(chunkToUpload,seqNum*CHUNKSIZE,CHUNKSIZE);
+				chunkFile.seek(seqNum*Settings.CHUNK_SIZE);
+				byte[] chunkToUpload=new byte[Settings.CHUNK_SIZE];
+				chunkFile.read(chunkToUpload,0,Settings.CHUNK_SIZE);
 				
 				fileInput = new BufferedInputStream(new FileInputStream(file));
 				fileOutput = new BufferedOutputStream(sock.getOutputStream());
