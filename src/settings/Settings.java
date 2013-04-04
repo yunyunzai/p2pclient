@@ -9,15 +9,16 @@ import org.yaml.snakeyaml.Yaml;
 
 public class Settings {
     
-	public static final int CHUNK_SIZE = 1000000;
+	public static final int CHUNK_SIZE = 10000;
 	
     public static String SERVER_IP;
     public static int SERVER_PORT;
     public static int CLIENT_PEER_PORT;
     public static int MAX_PEER_CONNECTION;
     public static int SERVER_LIST_TIMEOUT;
-    
+    public static int HASH_SIZE=40;
     public static String SHARED_FOLDER;
+    //public static final String LOG_FILE = "log.txt";
     
     public static final String CONF_FILE = "client.conf";
     
