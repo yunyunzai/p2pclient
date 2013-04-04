@@ -202,11 +202,12 @@ public class PeerServer {
 					else if(messageString.indexOf("DOWNLOAD", 0)==0)
 					{
 						String[] results=messageString.split(" |\r\n");
-						System.out.println(results[0]+" "+results[1]+" "+results[2]);
-						String fileHash = results[1];
-						
+						//System.out.println(results[0]+" "+results[1]+" "+results[2]);
+						String fileHash = results[1];						
 						long seqNum= Long.parseLong(results[2]);
+						
 						File file=LocalShares.getFile(fileHash);
+						
 						if (file ==null)
 						{
 							out.write("ER\r\n".getBytes("ASCII"));
@@ -214,7 +215,7 @@ public class PeerServer {
 						}
 						else
 						{
-							UploadManager um=new UploadManager(this.clientSocket,file,seqNum);
+							UploadManager um=new UploadManager(this.clientSocket,fileHash,seqNum);
 							//PeerServer.listofUploads.add(um);
 							um.start_upload();
 						}
