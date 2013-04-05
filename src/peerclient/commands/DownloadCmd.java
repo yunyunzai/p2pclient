@@ -301,14 +301,14 @@ public class DownloadCmd implements Runnable
 		return sock;
 	}
 	
-	synchronized private HashSet<Integer> readLogFile(String fileHash)
+
+	private HashSet<Integer> readLogFile(String fileHash) throws IOException
 	{
 		File logFile=new File(Settings.SHARED_FOLDER+"/"+fileHash+".tmp");
 		HashSet<Integer> result=new HashSet<Integer>();
-		
-		try {
-			
-				RandomAccessFile f=new RandomAccessFile(logFile,"rw");
+		RandomAccessFile f=null;
+		try {			
+				f=new RandomAccessFile(logFile,"rw");
 				if (logFile.length()==0)
 				{
 					System.out.println("Creating log file!!");
@@ -331,7 +331,8 @@ public class DownloadCmd implements Runnable
 				f.close();
 			
 		} 
-		catch (EOFException e) {
+		catch (EOFException e) {				
+			f.close();			
 			return result;		
 		}		
 		catch (Exception e) {
@@ -346,8 +347,8 @@ public class DownloadCmd implements Runnable
 	{
 		File logFile=new File(Settings.SHARED_FOLDER+"/"+fileHash+".tmp");
 		
-		logFile.delete();
-		logFile=new File(Settings.SHARED_FOLDER+"/"+fileHash+".tmp");
+		//System.out.println("DELETING old log file "+logFile.delete());
+		//logFile=new File(Settings.SHARED_FOLDER+"/"+fileHash+".tmp");
 		try {
 			RandomAccessFile f=new RandomAccessFile(logFile,"rw");
 			this.unreceivedSeqs.remove(seq);

@@ -129,19 +129,19 @@ public class ClientUI {
 
 			@Override
 			public void windowClosing(WindowEvent arg0) {
-				System.out.println("Close window detected");
-				for (DownloadCmd dc:panelDownload.downloads)
-				{	
-					
-					dc.closeDownload();
-					
-				}	
-				try {
-					Thread.sleep(2000);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+//				System.out.println("Close window detected");
+//				for (DownloadCmd dc:panelDownload.downloads)
+//				{	
+//					
+//					dc.closeDownload();
+//					
+//				}	
+//				try {
+//					Thread.sleep(2000);
+//				} catch (InterruptedException e) {
+//					// TODO Auto-generated catch block
+//					e.printStackTrace();
+//				}
 			}
 
 			@Override
