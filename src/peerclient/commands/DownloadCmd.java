@@ -167,7 +167,7 @@ public class DownloadCmd implements Runnable
 			while (unreceivedSeqs.size()!=0)
 			{
 				System.out.println("remaining "+unreceivedSeqs.size());
-				currentSeq=(int)unreceivedSeqs.toArray()[0];
+				currentSeq=(Integer)unreceivedSeqs.toArray()[0];
 				String cmd = "DOWNLOAD " + fileHash + " "+currentSeq+"\r\n";
 				//System.out.println(currentSeq+" "+fileSizeBytes);
 				sock = new Socket(ip, port);
