@@ -214,8 +214,9 @@ public class DownloadCmd implements Runnable
 					fileInput.close();
 					fileOutput.close();
 					rfile.close();
-					logProgress(fileHash,currentSeq);
 					bytesReceived+=i;
+					logProgress(fileHash,currentSeq);
+					
 				}
 				//currentSeq++;
 
@@ -236,31 +237,7 @@ public class DownloadCmd implements Runnable
 						throw new Exception("The other side replied saying it doesn't have the requested file.");
 					}
 				}
-
-				//					if(bytesReceived != fileSizeBytes)
-				//					{
-				//						//It's not the file we wanted, or at least not with the same size. Let's delete it
-				//						if(destFile.exists())
-				//						{
-				//							destFile.delete();
-				//						}
-				//						throw new Exception("The size of the file downloaded doesn't match with the size of the file requested.");
-				//					}
-				//					else
-				//					{	
-				//					String hash = Files.hash(destFile, Hashing.sha1()).toString();
-				//					if(!fileHash.equals(hash))
-				//					{
-				//						//It's not the file we wanted, or at least not with the same hash. Let's delete it
-				//						if(destFile.exists())
-				//						{
-				//							destFile.delete();
-				//						}
-				//						throw new Exception("The hash of the file downloaded doesn't match with the hash of the file requested.");
-				//					}
-				//					}
-
-				//				Thread.sleep(5000);
+				
 
 			}
 			// when download finished check if the downloaded file is the same
@@ -281,7 +258,7 @@ public class DownloadCmd implements Runnable
 				deleteLogFile(fileHash);
 				synchronized(ClientUI.getInstance().panelDownload.downloads)
 				{
-					ClientUI.getInstance().panelDownload.downloads.remove(this);
+//					ClientUI.getInstance().panelDownload.downloads.remove(this);
 				}
 			}
 		} 
