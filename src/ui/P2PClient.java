@@ -60,6 +60,7 @@ public class P2PClient {
 				try {
 					ClientUI.getInstance().initialize();
 					ClientUI.getInstance().frame.setVisible(true);
+					
 				} catch (Exception e) {
 					e.printStackTrace();
 				}

@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.net.Socket;
@@ -130,7 +131,7 @@ public class DownloadCmd implements Runnable
 		exit = true;
 	}
 
-	public void run() 
+	synchronized public void run() 
 	{	
 		sock = null;
 		OutputStream cmdOutput = null;
@@ -162,11 +163,13 @@ public class DownloadCmd implements Runnable
 			f.setLength(fileSizeBytes);
 			f.close();
 //			while (currentSeq*Settings.CHUNK_SIZE<fileSizeBytes)
+			
 			while (unreceivedSeqs.size()!=0)
 			{
+				System.out.println("remaining "+unreceivedSeqs.size());
 				currentSeq=(int)unreceivedSeqs.toArray()[0];
 				String cmd = "DOWNLOAD " + fileHash + " "+currentSeq+"\r\n";
-				System.out.println(currentSeq+" "+fileSizeBytes);
+				//System.out.println(currentSeq+" "+fileSizeBytes);
 				sock = new Socket(ip, port);
 				cmdOutput = sock.getOutputStream();
 				cmdOutput.write(cmd.getBytes("ASCII"));            
@@ -174,7 +177,7 @@ public class DownloadCmd implements Runnable
 
 				fileInput = new BufferedInputStream(sock.getInputStream());
 				destFile = new File(Settings.SHARED_FOLDER + "/" + fileName);
-				RandomAccessFile rfile=new RandomAccessFile(destFile,"rw");
+				RandomAccessFile rfile=new RandomAccessFile(destFile,"rws");
 				fileOutput = new BufferedOutputStream(new FileOutputStream(rfile.getFD()));
 				
 				int i;
@@ -190,9 +193,10 @@ public class DownloadCmd implements Runnable
 					//            	fileOutput.write(i);
 					
 					rfile.seek(currentSeq*Settings.CHUNK_SIZE);
-//					rfile.write(chunkRead, 0, i);
+					//rfile.write(chunkRead, 0, i);
 					
 					fileOutput.write(chunkRead, 0, i);
+					fileOutput.flush();
 					fileInput.close();
 					fileOutput.close();
 					rfile.close();
@@ -211,7 +215,7 @@ public class DownloadCmd implements Runnable
 				}
 				else
 				{
-					fileOutput.flush();
+					//fileOutput.flush();
 
 					if(bytesReceived < 10)
 					{	            	
@@ -251,9 +255,11 @@ public class DownloadCmd implements Runnable
 //					}
 //					}
 				}
+//				Thread.sleep(5000);
 				
 			}
 			// when download finished check if the downloaded file is the same
+			//Thread.sleep(10000);
 			String hash = Files.hash(destFile, Hashing.sha1()).toString();
 			if(!fileHash.equals(hash))
 			{
@@ -262,12 +268,14 @@ public class DownloadCmd implements Runnable
 				{
 					destFile.delete();
 				}
+				this.deleteLogFile(fileHash);
 				throw new Exception("The hash of the file downloaded doesn't match with the hash of the file requested.");
 			}
 			deleteLogFile(fileHash);
 		} 
 		catch (Exception e) 
 		{
+			e.printStackTrace();
 			//TODO: Report error to the UI
 		}
 		finally
@@ -293,10 +301,11 @@ public class DownloadCmd implements Runnable
 		return sock;
 	}
 	
-	private HashSet<Integer> readLogFile(String fileHash)
+	synchronized private HashSet<Integer> readLogFile(String fileHash)
 	{
 		File logFile=new File(Settings.SHARED_FOLDER+"/"+fileHash+".tmp");
 		HashSet<Integer> result=new HashSet<Integer>();
+		
 		try {
 			
 				RandomAccessFile f=new RandomAccessFile(logFile,"rw");
@@ -319,7 +328,7 @@ public class DownloadCmd implements Runnable
 					while ((i=f.readInt())!=-1)
 						result.add(i);					
 				}
-				f.close();			
+				f.close();
 			
 		} 
 		catch (EOFException e) {
@@ -329,12 +338,14 @@ public class DownloadCmd implements Runnable
 			// TODO Auto-generated catch block
 			e.printStackTrace();			
 		}
+		
 		return result;
 	}
 	
-	private void logProgress(String fileHash,int seq)
+	synchronized private void logProgress(String fileHash,int seq)
 	{
 		File logFile=new File(Settings.SHARED_FOLDER+"/"+fileHash+".tmp");
+		
 		logFile.delete();
 		logFile=new File(Settings.SHARED_FOLDER+"/"+fileHash+".tmp");
 		try {
@@ -355,6 +366,19 @@ public class DownloadCmd implements Runnable
 	private void deleteLogFile(String fileHash)
 	{
 		File logFile=new File(Settings.SHARED_FOLDER+"/"+fileHash+".tmp");
-		logFile.delete();
+		
+		//logFile.deleteOnExit();
+		System.out.println("DOWNLOAD successful, DELETING log file~~ "+logFile.delete());
+	}
+	
+	public void closeDownload()
+	{
+		try {
+			this.sock.close();
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }
