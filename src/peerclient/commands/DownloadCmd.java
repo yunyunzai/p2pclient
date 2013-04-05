@@ -55,7 +55,7 @@ public class DownloadCmd implements Runnable
 			{
 				if (d.fileHash.equals(this.fileHash))
 				{
-					ClientUI.getInstance().panelDownload.downloads.remove(d);
+					//ClientUI.getInstance().panelDownload.downloads.remove(d);
 
 				}
 			}
@@ -172,24 +172,32 @@ public class DownloadCmd implements Runnable
 					return;
 				}
 
-			}
-			synchronized (Settings.unreceivedSeqs){
-
-				if (Settings.unreceivedSeqs.get(this.fileHash)==null)
-					Settings.unreceivedSeqs.put(this.fileHash, readLogFile(fileHash));
-			}
+			}			
 			RandomAccessFile f = new RandomAccessFile(destFile, "rw");
 			f.setLength(fileSizeBytes);
 			f.close();
+			
+			// set initial unreceived sequeces to the last state remembered
+			synchronized (Settings.unreceivedSeqs){
 
+				if (Settings.unreceivedSeqs.get(this.fileHash)==null||Settings.unreceivedSeqs.get(this.fileHash).size()==0)
+					Settings.unreceivedSeqs.put(this.fileHash, readLogFile(fileHash));
+			}
 
-			//			while (currentSeq*Settings.CHUNK_SIZE<fileSizeBytes)
-
-			while (Settings.unreceivedSeqs.get(this.fileHash).size()!=0 && !exit)
+			
+			// number of unreceived sequeces
+			int size;
+			synchronized (Settings.unreceivedSeqs){
+				size=Settings.unreceivedSeqs.get(this.fileHash).size();
+			}
+			
+			while (size!=0 && !exit)
 			{
 				System.out.println("received bytes: "+bytesReceived);
 				System.out.println("chunks remaining: "+Settings.unreceivedSeqs.get(this.fileHash).size());
 				synchronized (Settings.unreceivedSeqs){
+					if (Settings.unreceivedSeqs.get(this.fileHash).toArray().length<=0)
+						break;
 					currentSeq=(Integer)Settings.unreceivedSeqs.get(this.fileHash).toArray()[new Random().nextInt(Settings.unreceivedSeqs.get(this.fileHash).toArray().length)];
 					System.out.println(currentSeq+" "+fileSizeBytes);
 				}
@@ -202,32 +210,30 @@ public class DownloadCmd implements Runnable
 
 				fileInput = new BufferedInputStream(sock.getInputStream());
 				destFile = new File(Settings.SHARED_FOLDER + "/" + fileName);
-				rfile=new RandomAccessFile(destFile,"rws");
+				rfile=new RandomAccessFile(destFile,"rw");
 				fileOutput = new BufferedOutputStream(new FileOutputStream(rfile.getFD()));
 
 				int i;
-				//				byte[] hashRead=new byte[Settings.HASH_SIZE];
-				//				fileInput.read(hashRead);
-				//				System.out.println("hash: "+hashRead);
 				byte[] chunkRead=new byte[Settings.CHUNK_SIZE];				
 				if ((i = fileInput.read(chunkRead)) != -1)
-				{					
-					//            	fileOutput.write(i);
-
+				{
 					rfile.seek(currentSeq*Settings.CHUNK_SIZE);
-					//rfile.write(chunkRead, 0, i);
 
-					fileOutput.write(chunkRead, 0, i);
-					fileOutput.flush();
-					fileInput.close();
-					fileOutput.close();
-					rfile.close();
+					synchronized (Settings.unreceivedSeqs){
+						fileOutput.write(chunkRead, 0, i);
+						fileOutput.flush();
+						fileInput.close();
+						fileOutput.close();
+						rfile.close();
+					}
 					bytesReceived+=i;
 					logProgress(fileHash,currentSeq);
 
 				}
 				//currentSeq++;
-
+				synchronized (Settings.unreceivedSeqs){
+					size=Settings.unreceivedSeqs.get(this.fileHash).size();
+				}
 
 				//fileOutput.flush();
 
@@ -245,7 +251,10 @@ public class DownloadCmd implements Runnable
 						throw new Exception("The other side replied saying it doesn't have the requested file.");
 					}
 				}
-
+				// close everything if not closed
+				fileInput.close();
+				fileOutput.close();
+				rfile.close();
 
 			}
 			// when download finished check if the downloaded file is the same
@@ -271,18 +280,26 @@ public class DownloadCmd implements Runnable
 			}
 		} 
 		catch (Exception e) 
-		{			
+		{
 			e.printStackTrace();
+			
 			//TODO: Report error to the UI
 		}
 		finally
 		{
 			try
-			{
-				rfile.close();
-				sock.close();
+			{ // close everything if not closed
+				
+				if (fileInput!=null)
+					fileInput.close();
+				if (fileOutput!=null)
+					fileOutput.close();
+				if (rfile!=null)
+					rfile.close();
+				if (sock!=null)
+					sock.close();				
 			}
-			catch(Exception e){}				
+			catch(Exception e){e.printStackTrace();}				
 		}
 
 

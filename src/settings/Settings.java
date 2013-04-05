@@ -20,7 +20,9 @@ public class Settings {
     public static int SERVER_LIST_TIMEOUT;
     public static int HASH_SIZE=40;
     public static String SHARED_FOLDER;
+    
     public static HashMap<String,HashSet<Integer>> unreceivedSeqs=new HashMap<String,HashSet<Integer>>();
+    
     //public static final String LOG_FILE = "log.txt";
     
     public static final String CONF_FILE = "client.conf";

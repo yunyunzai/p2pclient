@@ -1,0 +1,21 @@
+Munching CMOVE(LT, TEMP t054:-32(%rbp), TEMP t011:-24(%rbp), TEMP t056 <- CONST 1)
+    Matched CMOVE(*8, *1, *2, TEMP(*9) <- *0) with bindings *8->LT, *0->CONST 1, *2->TEMP t011:-24(%rbp), *1->TEMP t054:-32(%rbp), *9->t056, 
+
+Munching CMOVE(LT, TEMP t024, MEM(BINOP(PLUS, TEMP t087,  CONST 8)), TEMP t088 <- CONST 1)
+    Matched CMOVE(*8, *1, *2, TEMP(*9) <- *0) with bindings *8->LT, *0->CONST 1, *2->MEM(BINOP(PLUS, TEMP t087,  CONST 8)), *1->TEMP t024, *9->t088, 
+
+Munching CMOVE(LT, TEMP t027:-16(%rbp), MEM(BINOP(PLUS, TEMP t095:-24(%rbp),  CONST 8)), TEMP t098 <- CONST 1)
+    Matched CMOVE(*8, *1, *2, TEMP(*9) <- *0) with bindings *8->LT, *0->CONST 1, *2->MEM(BINOP(PLUS, TEMP t095:-24(%rbp),  CONST 8)), *1->TEMP t027:-16(%rbp), *9->t098, 
+
+Munching CMOVE(LT, TEMP t027:-16(%rbp), MEM(BINOP(PLUS, TEMP t095:-24(%rbp),  CONST 8)), TEMP t098:-72(%rbp) <- CONST 1)
+Munching CMOVE(LT, TEMP t027:-16(%rbp), MEM(BINOP(PLUS, TEMP t095:-24(%rbp),  CONST 8)), MEM(BINOP(PLUS, TEMP %rbp:%rbp,  CONST -72)) <- CONST 1)
+
+9: <- t046 ; goto 10  			movq    $0, t046              %rax %rbp %rdi %rsp t014 t045 t046 t047 t048 t049 t050 t051 t052 
+10: t114 <= t045 ; goto 11              movq t045,t114                %rax %rbp %rdi %rsp t014 t045 t046 t047 t048 t049 t050 t051 t052 t114 
+11: <- t114 ; goto 12                   addq $8, t114                 %rax %rbp %rdi %rsp t014 t045 t046 t047 t048 t049 t050 t051 t052 t114 
+12: t113 <- t114 ; goto 13              movq    (t114), t113          %rax %rbp %rdi %rsp t014 t045 t046 t047 t048 t049 t050 t051 t052 t113 
+13: <- t014 t113 ; goto 14              cmpq    t113, t014            %rax %rbp %rdi %rsp t014 t045 t046 t047 t048 t049 t050 t051 t052 
+14: t115 <- ; goto 15                   movq    $1, t115              %rax %rbp %rdi %rsp t014 t045 t046 t047 t048 t049 t050 t051 t052 t115 
+15: t046 <- t115 t046 ; goto 16         cmovl     t115, t046          %rax %rbp %rdi %rsp t014 t045 t046 t047 t048 t049 t050 t051 t052 
+16: <- t046 ; goto 17                   cmpq    $0, t046              %rax %rbp %rdi %rsp t014 t045 t046 t047 t048 t049 t050 t051 t052 
+17: <- ; goto 18 40                     je      L_50      
