@@ -2,6 +2,8 @@ package ui;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -13,6 +15,7 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableCellRenderer;
 
 import peerclient.commands.DownloadCmd;
+import peerclient.commands.PeerSearchResult;
 
 public class DownloadPanel extends JPanel 
 {	
@@ -100,7 +103,18 @@ public class DownloadPanel extends JPanel
 	{
 		super(new BorderLayout());
 		downloads = new LinkedList<DownloadCmd>();
-		JTable downloadTable = new JTable(dowloadTableModel);
+		final JTable downloadTable = new JTable(dowloadTableModel);
+		downloadTable.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				if (e.getClickCount() == 2) {
+					int row = downloadTable.getSelectedRow();
+					downloads.get(row).pauseResumeDownload();
+					
+					System.out.println("Download paused");
+				}
+			}
+		});
 		//downloadTable.getColumn("Progress").setCellRenderer(new ProgressCellRender());
 		this.add(new JScrollPane(downloadTable), BorderLayout.CENTER);
 		

@@ -20,6 +20,7 @@ import com.google.common.io.Files;
 
 import settings.Settings;
 import ui.ClientUI;
+import ui.P2PClient;
 
 public class DownloadCmd implements Runnable 
 {
@@ -31,7 +32,7 @@ public class DownloadCmd implements Runnable
 	private Date previousTime;
 	private String speed;
 	private HashSet<Integer> unreceivedSeqs;
-	
+
 	private int currentSeq=0;
 
 	public DownloadCmd(String ip, int port, String fileHash, String fileName, int fileSizeBytes)
@@ -49,6 +50,14 @@ public class DownloadCmd implements Runnable
 
 		synchronized(ClientUI.getInstance().panelDownload.downloads)
 		{
+			for (DownloadCmd d:ClientUI.getInstance().panelDownload.downloads)
+			{
+				if (d.fileHash.equals(this.fileHash))
+				{
+					ClientUI.getInstance().panelDownload.downloads.remove(d);
+					
+				}
+			}
 			ClientUI.getInstance().panelDownload.downloads.add(this);
 		}	
 	}
@@ -140,33 +149,41 @@ public class DownloadCmd implements Runnable
 		File destFile = null;
 		bytesReceived = 0;
 
-		
-		
-		
-		
-		
+		RandomAccessFile rfile=null;
+
+
+
 		try 
 		{				
-			
+
 			// create the dummy file first
 			destFile = new File(Settings.SHARED_FOLDER + "/" + fileName);
-			
+
 			// if the file already exists and finished downloading already don't need to download anything
 			if (destFile.exists())
 			{
 				if (Files.hash(destFile, Hashing.sha1()).toString().equals(fileHash))
+				{
+					synchronized(ClientUI.getInstance().panelDownload.downloads)
+					{
+						ClientUI.getInstance().panelDownload.downloads.remove(this);
+					}
 					return;
-				
+				}
+
 			}
 			unreceivedSeqs = readLogFile(fileHash);
 			RandomAccessFile f = new RandomAccessFile(destFile, "rw");
 			f.setLength(fileSizeBytes);
 			f.close();
-//			while (currentSeq*Settings.CHUNK_SIZE<fileSizeBytes)
 			
-			while (unreceivedSeqs.size()!=0)
+			
+			//			while (currentSeq*Settings.CHUNK_SIZE<fileSizeBytes)
+
+			while (unreceivedSeqs.size()!=0 && !exit)
 			{
-				System.out.println("remaining "+unreceivedSeqs.size());
+				System.out.println("received bytes: "+bytesReceived);
+				System.out.println("chunks remaining: "+unreceivedSeqs.size());
 				currentSeq=(Integer)unreceivedSeqs.toArray()[0];
 				String cmd = "DOWNLOAD " + fileHash + " "+currentSeq+"\r\n";
 				//System.out.println(currentSeq+" "+fileSizeBytes);
@@ -177,24 +194,21 @@ public class DownloadCmd implements Runnable
 
 				fileInput = new BufferedInputStream(sock.getInputStream());
 				destFile = new File(Settings.SHARED_FOLDER + "/" + fileName);
-				RandomAccessFile rfile=new RandomAccessFile(destFile,"rws");
+				rfile=new RandomAccessFile(destFile,"rws");
 				fileOutput = new BufferedOutputStream(new FileOutputStream(rfile.getFD()));
-				
+
 				int i;
-//				byte[] hashRead=new byte[Settings.HASH_SIZE];
-//				fileInput.read(hashRead);
-//				System.out.println("hash: "+hashRead);
+				//				byte[] hashRead=new byte[Settings.HASH_SIZE];
+				//				fileInput.read(hashRead);
+				//				System.out.println("hash: "+hashRead);
 				byte[] chunkRead=new byte[Settings.CHUNK_SIZE];				
 				if ((i = fileInput.read(chunkRead)) != -1)
-				{
-					if(exit)
-					{            		
-					}
+				{					
 					//            	fileOutput.write(i);
-					
+
 					rfile.seek(currentSeq*Settings.CHUNK_SIZE);
 					//rfile.write(chunkRead, 0, i);
-					
+
 					fileOutput.write(chunkRead, 0, i);
 					fileOutput.flush();
 					fileInput.close();
@@ -204,77 +218,75 @@ public class DownloadCmd implements Runnable
 					bytesReceived+=i;
 				}
 				//currentSeq++;
-				
-				if(exit)
-				{					
-					//We don't want to download anymore, so delete the file we were creating
+
+
+				//fileOutput.flush();
+
+				if(bytesReceived < 10)
+				{	            	
+					//Check if it's not an error message
+					char msg[] = new char[10];
+					FileReader reader = new FileReader(destFile);
+					reader.read(msg);
+					reader.close();
+					String response = new String(msg);
+					if(response.equals("ER\r\n"))
+					{
+						//It's an error message, it means the server doesn't have the file
+						throw new Exception("The other side replied saying it doesn't have the requested file.");
+					}
+				}
+
+				//					if(bytesReceived != fileSizeBytes)
+				//					{
+				//						//It's not the file we wanted, or at least not with the same size. Let's delete it
+				//						if(destFile.exists())
+				//						{
+				//							destFile.delete();
+				//						}
+				//						throw new Exception("The size of the file downloaded doesn't match with the size of the file requested.");
+				//					}
+				//					else
+				//					{	
+				//					String hash = Files.hash(destFile, Hashing.sha1()).toString();
+				//					if(!fileHash.equals(hash))
+				//					{
+				//						//It's not the file we wanted, or at least not with the same hash. Let's delete it
+				//						if(destFile.exists())
+				//						{
+				//							destFile.delete();
+				//						}
+				//						throw new Exception("The hash of the file downloaded doesn't match with the hash of the file requested.");
+				//					}
+				//					}
+
+				//				Thread.sleep(5000);
+
+			}
+			// when download finished check if the downloaded file is the same
+			//Thread.sleep(10000);
+			if (!exit)
+			{
+				String hash = Files.hash(destFile, Hashing.sha1()).toString();
+				if(!fileHash.equals(hash))
+				{
+					//It's not the file we wanted, or at least not with the same hash. Let's delete it
 					if(destFile.exists())
 					{
 						destFile.delete();
 					}
+					this.deleteLogFile(fileHash);
+					throw new Exception("The hash of the file downloaded doesn't match with the hash of the file requested.");
 				}
-				else
+				deleteLogFile(fileHash);
+				synchronized(ClientUI.getInstance().panelDownload.downloads)
 				{
-					//fileOutput.flush();
-
-					if(bytesReceived < 10)
-					{	            	
-						//Check if it's not an error message
-						char msg[] = new char[10];
-						FileReader reader = new FileReader(destFile);
-						reader.read(msg);
-						reader.close();
-						String response = new String(msg);
-						if(response.equals("ER\r\n"))
-						{
-							//It's an error message, it means the server doesn't have the file
-							throw new Exception("The other side replied saying it doesn't have the requested file.");
-						}
-					}
-
-//					if(bytesReceived != fileSizeBytes)
-//					{
-//						//It's not the file we wanted, or at least not with the same size. Let's delete it
-//						if(destFile.exists())
-//						{
-//							destFile.delete();
-//						}
-//						throw new Exception("The size of the file downloaded doesn't match with the size of the file requested.");
-//					}
-//					else
-//					{	
-//					String hash = Files.hash(destFile, Hashing.sha1()).toString();
-//					if(!fileHash.equals(hash))
-//					{
-//						//It's not the file we wanted, or at least not with the same hash. Let's delete it
-//						if(destFile.exists())
-//						{
-//							destFile.delete();
-//						}
-//						throw new Exception("The hash of the file downloaded doesn't match with the hash of the file requested.");
-//					}
-//					}
+					ClientUI.getInstance().panelDownload.downloads.remove(this);
 				}
-//				Thread.sleep(5000);
-				
 			}
-			// when download finished check if the downloaded file is the same
-			//Thread.sleep(10000);
-			String hash = Files.hash(destFile, Hashing.sha1()).toString();
-			if(!fileHash.equals(hash))
-			{
-				//It's not the file we wanted, or at least not with the same hash. Let's delete it
-				if(destFile.exists())
-				{
-					destFile.delete();
-				}
-				this.deleteLogFile(fileHash);
-				throw new Exception("The hash of the file downloaded doesn't match with the hash of the file requested.");
-			}
-			deleteLogFile(fileHash);
 		} 
 		catch (Exception e) 
-		{
+		{			
 			e.printStackTrace();
 			//TODO: Report error to the UI
 		}
@@ -282,25 +294,20 @@ public class DownloadCmd implements Runnable
 		{
 			try
 			{
-				//TODO: delete the file if it hasn't been downloaded successfully
-//				fileInput.close();
-//				fileOutput.close();
+				rfile.close();
 				sock.close();
 			}
 			catch(Exception e){}				
 		}
-
-		synchronized(ClientUI.getInstance().panelDownload.downloads)
-		{
-			//ClientUI.getInstance().panelDownload.downloads.remove(this);
-		}				
+		
+						
 	}
 
 	public Socket getSocket()
 	{
 		return sock;
 	}
-	
+
 
 	private HashSet<Integer> readLogFile(String fileHash) throws IOException
 	{
@@ -308,28 +315,28 @@ public class DownloadCmd implements Runnable
 		HashSet<Integer> result=new HashSet<Integer>();
 		RandomAccessFile f=null;
 		try {			
-				f=new RandomAccessFile(logFile,"rw");
-				if (logFile.length()==0)
+			f=new RandomAccessFile(logFile,"rw");
+			if (logFile.length()==0)
+			{
+				System.out.println("Creating log file!!");
+				f.writeInt(0);
+				for (int i=0;i<=fileSizeBytes/Settings.CHUNK_SIZE;i++)
 				{
-					System.out.println("Creating log file!!");
-					//f.writeInt(0);
-					for (int i=0;i<=fileSizeBytes/Settings.CHUNK_SIZE;i++)
-					{
-						
-						//String s=i+" ";
-						f.writeInt(i);
-						result.add(i);
-					}
+
+					//String s=i+" ";
+					f.writeInt(i);
+					result.add(i);
 				}
-				else
-				{
-					int i;
-					//bytesReceived=f.readInt();
-					while ((i=f.readInt())!=-1)
-						result.add(i);					
-				}
-				f.close();
-			
+			}
+			else
+			{
+				int i;
+				bytesReceived=f.readInt();
+				while ((i=f.readInt())!=-1)
+					result.add(i);					
+			}
+			f.close();
+
 		} 
 		catch (EOFException e) {				
 			f.close();			
@@ -339,20 +346,20 @@ public class DownloadCmd implements Runnable
 			// TODO Auto-generated catch block
 			e.printStackTrace();			
 		}
-		
+
 		return result;
 	}
-	
+
 	synchronized private void logProgress(String fileHash,int seq)
 	{
 		File logFile=new File(Settings.SHARED_FOLDER+"/"+fileHash+".tmp");
-		
+
 		//System.out.println("DELETING old log file "+logFile.delete());
 		//logFile=new File(Settings.SHARED_FOLDER+"/"+fileHash+".tmp");
 		try {
 			RandomAccessFile f=new RandomAccessFile(logFile,"rw");
 			this.unreceivedSeqs.remove(seq);
-			//f.writeInt(bytesReceived);
+			f.writeInt(bytesReceived);
 			for (int i:unreceivedSeqs)
 			{
 				f.writeInt(i);
@@ -362,20 +369,29 @@ public class DownloadCmd implements Runnable
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+
 	}
 	private void deleteLogFile(String fileHash)
 	{
 		File logFile=new File(Settings.SHARED_FOLDER+"/"+fileHash+".tmp");
-		
+
 		//logFile.deleteOnExit();
 		System.out.println("DOWNLOAD successful, DELETING log file~~ "+logFile.delete());
 	}
-	
-	public void closeDownload()
+
+	public void pauseResumeDownload()
 	{
 		try {
-			this.sock.close();
+			if (!exit)
+			{
+				exit=true;
+				this.sock.close();	
+			}
+			else
+			{		
+				exit=false;
+				ClientUI.getInstance().peerClient.downloadFileFromPeer(ip, port, fileHash, fileName, fileSizeBytes);
+			}			
 			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
