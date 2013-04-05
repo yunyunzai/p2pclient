@@ -3,6 +3,8 @@ package settings;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 import org.yaml.snakeyaml.Yaml;
@@ -18,6 +20,7 @@ public class Settings {
     public static int SERVER_LIST_TIMEOUT;
     public static int HASH_SIZE=40;
     public static String SHARED_FOLDER;
+    public static HashMap<String,HashSet<Integer>> unreceivedSeqs=new HashMap<String,HashSet<Integer>>();
     //public static final String LOG_FILE = "log.txt";
     
     public static final String CONF_FILE = "client.conf";

@@ -14,6 +14,7 @@ import java.net.Socket;
 import java.text.DecimalFormat;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Random;
 
 import com.google.common.hash.Hashing;
 import com.google.common.io.Files;
@@ -31,7 +32,7 @@ public class DownloadCmd implements Runnable
 	private int bytesReceived, bytesPreviouslyReceived;
 	private Date previousTime;
 	private String speed;
-	private HashSet<Integer> unreceivedSeqs;
+	//private HashSet<Integer> unreceivedSeqs;
 
 	private int currentSeq=0;
 
@@ -55,7 +56,7 @@ public class DownloadCmd implements Runnable
 				if (d.fileHash.equals(this.fileHash))
 				{
 					ClientUI.getInstance().panelDownload.downloads.remove(d);
-					
+
 				}
 			}
 			ClientUI.getInstance().panelDownload.downloads.add(this);
@@ -172,21 +173,28 @@ public class DownloadCmd implements Runnable
 				}
 
 			}
-			unreceivedSeqs = readLogFile(fileHash);
+			synchronized (Settings.unreceivedSeqs){
+
+				if (Settings.unreceivedSeqs.get(this.fileHash)==null)
+					Settings.unreceivedSeqs.put(this.fileHash, readLogFile(fileHash));
+			}
 			RandomAccessFile f = new RandomAccessFile(destFile, "rw");
 			f.setLength(fileSizeBytes);
 			f.close();
-			
-			
+
+
 			//			while (currentSeq*Settings.CHUNK_SIZE<fileSizeBytes)
 
-			while (unreceivedSeqs.size()!=0 && !exit)
+			while (Settings.unreceivedSeqs.get(this.fileHash).size()!=0 && !exit)
 			{
 				System.out.println("received bytes: "+bytesReceived);
-				System.out.println("chunks remaining: "+unreceivedSeqs.size());
-				currentSeq=(Integer)unreceivedSeqs.toArray()[0];
+				System.out.println("chunks remaining: "+Settings.unreceivedSeqs.get(this.fileHash).size());
+				synchronized (Settings.unreceivedSeqs){
+					currentSeq=(Integer)Settings.unreceivedSeqs.get(this.fileHash).toArray()[new Random().nextInt(Settings.unreceivedSeqs.get(this.fileHash).toArray().length)];
+					System.out.println(currentSeq+" "+fileSizeBytes);
+				}
 				String cmd = "DOWNLOAD " + fileHash + " "+currentSeq+"\r\n";
-				//System.out.println(currentSeq+" "+fileSizeBytes);
+
 				sock = new Socket(ip, port);
 				cmdOutput = sock.getOutputStream();
 				cmdOutput.write(cmd.getBytes("ASCII"));            
@@ -216,7 +224,7 @@ public class DownloadCmd implements Runnable
 					rfile.close();
 					bytesReceived+=i;
 					logProgress(fileHash,currentSeq);
-					
+
 				}
 				//currentSeq++;
 
@@ -237,7 +245,7 @@ public class DownloadCmd implements Runnable
 						throw new Exception("The other side replied saying it doesn't have the requested file.");
 					}
 				}
-				
+
 
 			}
 			// when download finished check if the downloaded file is the same
@@ -258,7 +266,7 @@ public class DownloadCmd implements Runnable
 				deleteLogFile(fileHash);
 				synchronized(ClientUI.getInstance().panelDownload.downloads)
 				{
-//					ClientUI.getInstance().panelDownload.downloads.remove(this);
+					//					ClientUI.getInstance().panelDownload.downloads.remove(this);
 				}
 			}
 		} 
@@ -276,8 +284,8 @@ public class DownloadCmd implements Runnable
 			}
 			catch(Exception e){}				
 		}
-		
-						
+
+
 	}
 
 	public Socket getSocket()
@@ -335,11 +343,14 @@ public class DownloadCmd implements Runnable
 		//logFile=new File(Settings.SHARED_FOLDER+"/"+fileHash+".tmp");
 		try {
 			RandomAccessFile f=new RandomAccessFile(logFile,"rw");
-			this.unreceivedSeqs.remove(seq);
-			f.writeInt(bytesReceived);
-			for (int i:unreceivedSeqs)
-			{
-				f.writeInt(i);
+			synchronized (Settings.unreceivedSeqs){
+				Settings.unreceivedSeqs.get(this.fileHash).remove(seq);
+
+				f.writeInt(bytesReceived);
+				for (int i:Settings.unreceivedSeqs.get(this.fileHash))
+				{
+					f.writeInt(i);
+				}
 			}
 			f.close();
 		} catch (Exception e) {
@@ -369,7 +380,7 @@ public class DownloadCmd implements Runnable
 				exit=false;
 				ClientUI.getInstance().peerClient.downloadFileFromPeer(ip, port, fileHash, fileName, fileSizeBytes);
 			}			
-			
+
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
