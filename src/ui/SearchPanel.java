@@ -154,7 +154,7 @@ public class SearchPanel extends JPanel {
 					
 					for (int i=0;i<resultsModel.getRowCount();i++)
 					{
-						PeerSearchResult candidate=(PeerSearchResult) resultsModel.getValueAt(row, 3);
+						PeerSearchResult candidate=(PeerSearchResult) resultsModel.getValueAt(i, 3);
 						if (candidate.getHash().equals(s.getHash()))
 							ClientUI.getInstance().peerClient.downloadFileFromPeer(
 									candidate.getIP(), candidate.getPort(), candidate.getHash(), candidate.getName(), Integer.parseInt(candidate.getSize()));

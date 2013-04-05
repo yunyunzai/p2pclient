@@ -176,7 +176,7 @@ public class DownloadCmd implements Runnable
 			RandomAccessFile f = new RandomAccessFile(destFile, "rw");
 			f.setLength(fileSizeBytes);
 			f.close();
-			
+
 			// set initial unreceived sequeces to the last state remembered
 			synchronized (Settings.unreceivedSeqs){
 
@@ -184,13 +184,13 @@ public class DownloadCmd implements Runnable
 					Settings.unreceivedSeqs.put(this.fileHash, readLogFile(fileHash));
 			}
 
-			
+
 			// number of unreceived sequeces
 			int size;
 			synchronized (Settings.unreceivedSeqs){
 				size=Settings.unreceivedSeqs.get(this.fileHash).size();
 			}
-			
+
 			while (size!=0 && !exit)
 			{
 				System.out.println("received bytes: "+bytesReceived);
@@ -213,23 +213,25 @@ public class DownloadCmd implements Runnable
 				rfile=new RandomAccessFile(destFile,"rw");
 				fileOutput = new BufferedOutputStream(new FileOutputStream(rfile.getFD()));
 
-				int i;
-				byte[] chunkRead=new byte[Settings.CHUNK_SIZE];				
-				if ((i = fileInput.read(chunkRead)) != -1)
+				int i=0;
+				byte[] chunkRead=new byte[Math.min((int)(fileSizeBytes-currentSeq*Settings.CHUNK_SIZE),Settings.CHUNK_SIZE)];				
+				while (i<chunkRead.length&&(i += fileInput.read(chunkRead,i,chunkRead.length-i)) != -1)
 				{
-					rfile.seek(currentSeq*Settings.CHUNK_SIZE);
-
-					synchronized (Settings.unreceivedSeqs){
-						fileOutput.write(chunkRead, 0, i);
-						fileOutput.flush();
-						fileInput.close();
-						fileOutput.close();
-						rfile.close();
-					}
-					bytesReceived+=i;
-					logProgress(fileHash,currentSeq);
-
 				}
+				
+				rfile.seek(currentSeq*Settings.CHUNK_SIZE);
+
+				synchronized (Settings.unreceivedSeqs){
+					fileOutput.write(chunkRead, 0, i);
+					fileOutput.flush();
+					fileInput.close();
+					fileOutput.close();
+					rfile.close();
+				}
+				bytesReceived+=i;
+				logProgress(fileHash,currentSeq);
+
+
 				//currentSeq++;
 				synchronized (Settings.unreceivedSeqs){
 					size=Settings.unreceivedSeqs.get(this.fileHash).size();
@@ -252,9 +254,12 @@ public class DownloadCmd implements Runnable
 					}
 				}
 				// close everything if not closed
-				fileInput.close();
-				fileOutput.close();
-				rfile.close();
+				synchronized (Settings.unreceivedSeqs){
+					fileOutput.flush();
+					fileInput.close();
+					fileOutput.close();
+					rfile.close();
+				}
 
 			}
 			// when download finished check if the downloaded file is the same
@@ -267,7 +272,7 @@ public class DownloadCmd implements Runnable
 					//It's not the file we wanted, or at least not with the same hash. Let's delete it
 					if(destFile.exists())
 					{
-						destFile.delete();
+						//destFile.delete();
 					}
 					this.deleteLogFile(fileHash);
 					throw new Exception("The hash of the file downloaded doesn't match with the hash of the file requested.");
@@ -282,22 +287,23 @@ public class DownloadCmd implements Runnable
 		catch (Exception e) 
 		{
 			e.printStackTrace();
-			
+
 			//TODO: Report error to the UI
 		}
 		finally
 		{
 			try
 			{ // close everything if not closed
-				
-				if (fileInput!=null)
-					fileInput.close();
-				if (fileOutput!=null)
-					fileOutput.close();
-				if (rfile!=null)
-					rfile.close();
-				if (sock!=null)
-					sock.close();				
+				synchronized (Settings.unreceivedSeqs){
+					if (fileInput!=null)
+						fileInput.close();
+					if (fileOutput!=null)
+						fileOutput.close();
+					if (rfile!=null)
+						rfile.close();
+					if (sock!=null)
+						sock.close();	
+				}
 			}
 			catch(Exception e){e.printStackTrace();}				
 		}
